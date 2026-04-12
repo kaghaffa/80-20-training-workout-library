@@ -2,7 +2,7 @@
   "name": "80/20 Workout Library",
   "short_name": "80/20 Workouts",
   "description": "Quick lookup for 80/20 Endurance workout codes",
-  "start_url": "/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#e87f2a",
