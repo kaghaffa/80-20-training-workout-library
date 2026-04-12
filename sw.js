@@ -1,9 +1,10 @@
-const CACHE_NAME = '8020-workouts-v1';
+const CACHE_NAME = '8020-workouts-v2';
 const ASSETS = [
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/og-image.png'
 ];
 
 self.addEventListener('install', e => {
