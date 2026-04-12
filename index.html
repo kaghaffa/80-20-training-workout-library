@@ -63,6 +63,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .share-btn.copied{border-color:#6bc46b;color:#6bc46b}
 .share-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--orange);color:#111;padding:8px 20px;border-radius:8px;font-size:.85rem;font-weight:600;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
 .share-hint.show{opacity:1}
+.timeline{display:flex;height:14px;border-radius:4px;overflow:hidden;margin-top:10px;background:#1a1a1a;gap:1px}
+.timeline-seg{height:100%;min-width:2px;position:relative;transition:opacity .15s}
+.timeline-seg:hover{opacity:.8}
+.timeline-seg[data-tooltip]:hover::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#111;color:var(--text);padding:3px 8px;border-radius:4px;font-size:.65rem;white-space:nowrap;z-index:5;border:1px solid var(--border);pointer-events:none}
+.tz1{background:#6bc46b}.tz2{background:#4db8e0}.tz3{background:#e0c94d}.tz4{background:#e08a4d}.tz5{background:#e04d4d}.tz0{background:#555}
 .zone-tag{font-weight:600}
 .z1{color:#6bc46b}.z2{color:#4db8e0}.z3{color:#e0c94d}.z4{color:#e08a4d}.z5{color:#e04d4d}
 @media(max-width:600px){.header{padding:14px 12px}.container{padding:10px}.card{padding:12px}.card-top{gap:6px}.duration{margin-left:0;width:100%;text-align:left}.sport-tabs{gap:4px}.sport-tab{padding:5px 12px;font-size:.7rem}.zone-legend{gap:8px}}
@@ -622,6 +627,112 @@ const c=s==='Run'?'badge-run':s==='Bike'?'badge-bike':'badge-swim';
 return `<span class="badge ${c}">${s}</span>`;
 }
 
+// Parse workout description into [{value, zone}] segments
+function parseSegments(desc){
+const segs=[];
+// Normalize: remove newlines, extra spaces
+let d=desc.replace(/\n/g,' ').replace(/\s+/g,' ').trim();
+// Remove non-zone text like "uphill or simulated", "(25 Meter Pool Workout)", "at race pace"
+d=d.replace(/uphill\s*(or\s*simulated)?/gi,'');
+d=d.replace(/\(25\s*(Meter|Yard)\s*Pool\s*Workout\)/gi,'');
+d=d.replace(/simulated/gi,'');
+
+// Tokenize: split into parts handling "N x (...)" repeats
+const tokens=[];
+let i=0;
+while(i<d.length){
+// Match repeat pattern: N x (stuff)
+const repMatch=d.slice(i).match(/^(\d+)\s*x\s*\(([^)]+)\)/i);
+if(repMatch){
+const reps=parseInt(repMatch[1]);
+const inner=repMatch[2];
+// Parse inner segments separated by /
+const parts=inner.split('/');
+for(let r=0;r<reps;r++){
+parts.forEach(p=>parseSimpleSeg(p.trim(),segs));
+}
+i+=repMatch[0].length;
+// Skip comma/space after
+while(i<d.length&&(d[i]===','||d[i]===' '||d[i]===')'))i++;
+continue;
+}
+// Match simple segment: number + optional unit + Zone N
+const segMatch=d.slice(i).match(/^(\d+\.?\d*)\s*(minutes?|mins?|mi(?:les?)?|seconds?|"|\s)*(?:in\s+)?Zone\s*(\d)/i);
+if(segMatch){
+const val=parseFloat(segMatch[1]);
+const zone=parseInt(segMatch[3]);
+const unit=segMatch[2]?segMatch[2].trim():'';
+// Convert seconds to minutes for display
+let adjVal=val;
+if(unit.match(/second/i)||unit==='"')adjVal=val/60;
+segs.push({value:adjVal,zone});
+i+=segMatch[0].length;
+while(i<d.length&&(d[i]===','||d[i]===' '))i++;
+continue;
+}
+// Match "at race pace" segments like "16 miles at race pace"
+const raceMatch=d.slice(i).match(/^(\d+\.?\d*)\s*(miles?|mi)\s+at\s+race\s+pace/i);
+if(raceMatch){
+segs.push({value:parseFloat(raceMatch[1]),zone:3});
+i+=raceMatch[0].length;
+while(i<d.length&&(d[i]===','||d[i]===' '))i++;
+continue;
+}
+// Match "rest" segments
+const restMatch=d.slice(i).match(/^(\d+\.?\d*)\s*(minutes?|seconds?|")\s*rest/i);
+if(restMatch){
+const val=parseFloat(restMatch[1]);
+const unit=restMatch[2];
+let adjVal=val;
+if(unit.match(/second/i)||unit==='"')adjVal=val/60;
+segs.push({value:adjVal,zone:0});
+i+=restMatch[0].length;
+while(i<d.length&&(d[i]===','||d[i]===' '))i++;
+continue;
+}
+i++;
+}
+return segs;
+}
+
+function parseSimpleSeg(s,segs){
+// "1 minute Zone 5 uphill" or "2 minutes Zone 1" or "100 Zone 3" or "50 Zone 1"
+const m=s.match(/(\d+\.?\d*)\s*(minutes?|mins?|seconds?|"|\s)*(?:in\s+)?Zone\s*(\d)/i);
+if(m){
+const val=parseFloat(m[1]);
+const zone=parseInt(m[3]);
+const unit=m[2]?m[2].trim():'';
+let adjVal=val;
+if(unit.match(/second/i)||unit==='"')adjVal=val/60;
+segs.push({value:adjVal,zone});
+}
+// Check for rest
+const r=s.match(/(\d+\.?\d*)\s*(minutes?|seconds?|")\s*rest/i);
+if(r&&!m){
+const val=parseFloat(r[1]);
+const unit=r[2];
+let adjVal=val;
+if(unit.match(/second/i)||unit==='"')adjVal=val/60;
+segs.push({value:adjVal,zone:0});
+}
+}
+
+function renderTimeline(desc){
+const segs=parseSegments(desc);
+if(segs.length===0)return '';
+const total=segs.reduce((s,x)=>s+x.value,0);
+if(total===0)return '';
+const bars=segs.map(s=>{
+const pct=(s.value/total*100);
+const minPct=Math.max(pct,0.5);
+const zClass=s.zone>=1&&s.zone<=5?'tz'+s.zone:'tz0';
+const label=s.zone?'Zone '+s.zone:'Rest';
+const durLabel=s.value>=1?Math.round(s.value)+'':'<1';
+return `<div class="timeline-seg ${zClass}" style="width:${minPct}%" data-tooltip="${label} (${durLabel})"></div>`;
+}).join('');
+return `<div class="timeline">${bars}</div>`;
+}
+
 function renderCard(w){
 return `<div class="card">
 <div class="card-top">
@@ -632,6 +743,7 @@ ${sportBadge(w[4])}
 <span class="duration">${formatDuration(w[1],w[4])}</span>
 </div>
 <div class="description">${colorZones(w[2])}</div>
+${renderTimeline(w[2])}
 </div>`;
 }
 
