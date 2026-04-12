@@ -18,7 +18,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .search-wrap input::placeholder{color:var(--text-dim)}
 .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:1.1rem;pointer-events:none}
 .stats{color:var(--text-dim);font-size:.8rem;margin-top:8px}
+.sport-tabs{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.sport-tab{padding:6px 18px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+.sport-tab:hover{border-color:#555;color:var(--text)}
+.sport-tab.active{border-color:var(--orange);color:var(--orange);background:rgba(232,127,42,.1)}
+.sport-tab.active-run{border-color:#7bc67b;color:#7bc67b;background:rgba(45,74,45,.3)}
+.sport-tab.active-bike{border-color:#7bafc6;color:#7bafc6;background:rgba(45,58,74,.3)}
+.sport-tab.active-swim{border-color:#c6a67b;color:#c6a67b;background:rgba(74,58,45,.3)}
+.zone-legend{display:flex;gap:12px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.zone-legend-item{display:flex;align-items:center;gap:4px;font-size:.75rem;color:var(--text-dim)}
+.zone-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.zone-legend-label{font-size:.65rem;color:var(--text-dim);margin-top:2px;text-align:center}
 .container{max-width:900px;margin:0 auto;padding:16px}
+.category-browser{margin-bottom:16px}
+.cat-group{margin-bottom:2px}
+.cat-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;user-select:none}
+.cat-header:hover{background:var(--card-hover);border-color:#444}
+.cat-header.open{border-radius:8px 8px 0 0;border-bottom-color:transparent;background:var(--card-hover)}
+.cat-header-left{display:flex;align-items:center;gap:8px}
+.cat-name{font-weight:600;font-size:.9rem}
+.cat-count{color:var(--text-dim);font-size:.75rem}
+.cat-arrow{color:var(--text-dim);font-size:.8rem;transition:transform .2s}
+.cat-header.open .cat-arrow{transform:rotate(90deg)}
+.cat-body{display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:var(--card);overflow:hidden}
+.cat-body.open{display:block}
+.cat-body .card{border-radius:0;border-left:none;border-right:none;border-bottom:1px solid var(--border)}
+.cat-body .card:last-child{border-bottom:none}
 .results{display:flex;flex-direction:column;gap:10px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:background .15s,border-color .15s;cursor:default}
 .card:hover{background:var(--card-hover);border-color:#444}
@@ -35,7 +60,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .empty .big{font-size:2rem;margin-bottom:8px}
 .zone-tag{font-weight:600}
 .z1{color:#6bc46b}.z2{color:#4db8e0}.z3{color:#e0c94d}.z4{color:#e08a4d}.z5{color:#e04d4d}
-@media(max-width:600px){.header{padding:14px 12px}.container{padding:10px}.card{padding:12px}.card-top{gap:6px}.duration{margin-left:0;width:100%;text-align:left}}
+@media(max-width:600px){.header{padding:14px 12px}.container{padding:10px}.card{padding:12px}.card-top{gap:6px}.duration{margin-left:0;width:100%;text-align:left}.sport-tabs{gap:4px}.sport-tab{padding:5px 12px;font-size:.7rem}.zone-legend{gap:8px}}
 </style>
 </head>
 <body>
@@ -46,9 +71,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <span class="search-icon">&#128269;</span>
 <input type="text" id="search" placeholder="Type a workout code (e.g. RRe9, CF5, SCI3)..." autofocus>
 </div>
+<div class="sport-tabs" id="sportTabs">
+<button class="sport-tab active" data-sport="All">All</button>
+<button class="sport-tab" data-sport="Run">Run</button>
+<button class="sport-tab" data-sport="Bike">Bike</button>
+<button class="sport-tab" data-sport="Swim">Swim</button>
+</div>
+<div class="zone-legend">
+<div class="zone-legend-item"><span class="zone-dot" style="background:#6bc46b"></span><span>Zone 1 <span style="color:#555">Easy</span></span></div>
+<div class="zone-legend-item"><span class="zone-dot" style="background:#4db8e0"></span><span>Zone 2 <span style="color:#555">Moderate</span></span></div>
+<div class="zone-legend-item"><span class="zone-dot" style="background:#e0c94d"></span><span>Zone 3 <span style="color:#555">Tempo</span></span></div>
+<div class="zone-legend-item"><span class="zone-dot" style="background:#e08a4d"></span><span>Zone 4 <span style="color:#555">Threshold</span></span></div>
+<div class="zone-legend-item"><span class="zone-dot" style="background:#e04d4d"></span><span>Zone 5 <span style="color:#555">Max</span></span></div>
+</div>
 <div class="stats" id="stats"></div>
 </div>
 <div class="container">
+<div class="category-browser" id="categoryBrowser"></div>
 <div class="results" id="results"></div>
 </div>
 <script>
@@ -592,25 +631,89 @@ ${sportBadge(w[4])}
 const searchEl=document.getElementById('search');
 const resultsEl=document.getElementById('results');
 const statsEl=document.getElementById('stats');
+const catBrowserEl=document.getElementById('categoryBrowser');
+let activeSport='All';
+
+// Sport tab switching
+document.getElementById('sportTabs').addEventListener('click',e=>{
+const btn=e.target.closest('.sport-tab');
+if(!btn)return;
+document.querySelectorAll('.sport-tab').forEach(b=>{b.classList.remove('active','active-run','active-bike','active-swim')});
+activeSport=btn.dataset.sport;
+if(activeSport==='All')btn.classList.add('active');
+else btn.classList.add('active','active-'+activeSport.toLowerCase());
+update();
+});
+
+// Build category groups
+function getCategoriesForSport(sport){
+const cats=[];
+const seen=new Set();
+const list=sport==='All'?W:W.filter(w=>w[4]===sport);
+list.forEach(w=>{
+if(!seen.has(w[3])){seen.add(w[3]);cats.push(w[3])}
+});
+return cats;
+}
+
+function renderCategoryBrowser(filtered){
+const sport=activeSport;
+const cats=getCategoriesForSport(sport);
+if(cats.length===0){catBrowserEl.innerHTML='';return;}
+// Group filtered workouts by category
+const groups={};
+filtered.forEach(w=>{
+if(!groups[w[3]])groups[w[3]]=[];
+groups[w[3]].push(w);
+});
+catBrowserEl.innerHTML=cats.filter(c=>groups[c]).map(cat=>{
+const workouts=groups[cat]||[];
+const badge=workouts[0]?sportBadge(workouts[0][4]):'';
+return `<div class="cat-group">
+<div class="cat-header" onclick="toggleCat(this)">
+<div class="cat-header-left">${badge}<span class="cat-name">${cat}</span><span class="cat-count">${workouts.length} workout${workouts.length!==1?'s':''}</span></div>
+<span class="cat-arrow">&#9654;</span>
+</div>
+<div class="cat-body">${workouts.map(renderCard).join('')}</div>
+</div>`;
+}).join('');
+}
+
+function toggleCat(el){
+el.classList.toggle('open');
+el.nextElementSibling.classList.toggle('open');
+}
 
 function update(){
 const q=searchEl.value.trim().toLowerCase();
 let filtered=W;
+// Apply sport filter
+if(activeSport!=='All'){
+filtered=filtered.filter(w=>w[4]===activeSport);
+}
+// Apply search query
 if(q){
-filtered=W.filter(w=>
+filtered=filtered.filter(w=>
 w[0].toLowerCase().includes(q)||
 w[2].toLowerCase().includes(q)||
 w[3].toLowerCase().includes(q)||
 w[4].toLowerCase().includes(q)
 );
 }
-statsEl.textContent=`Showing ${filtered.length} of ${W.length} workouts`;
+const total=activeSport==='All'?W.length:W.filter(w=>w[4]===activeSport).length;
+statsEl.textContent=`Showing ${filtered.length} of ${total} workouts`;
+if(q){
+// Search mode: show flat results
+catBrowserEl.innerHTML='';
 if(filtered.length===0){
 resultsEl.innerHTML='<div class="empty"><div class="big">No matches</div><div>Try a different search term</div></div>';
-}else if(filtered.length>50&&!q){
-resultsEl.innerHTML='<div class="empty"><div class="big">'+W.length+' Workouts</div><div>Start typing to search</div></div>';
 }else{
 resultsEl.innerHTML=filtered.map(renderCard).join('');
+}
+}else{
+// Browse mode: show category groups
+resultsEl.innerHTML='';
+renderCategoryBrowser(filtered);
 }
 }
 
