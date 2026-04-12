@@ -58,6 +58,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .description{color:#bbb;font-size:.9rem;line-height:1.5}
 .empty{text-align:center;padding:60px 20px;color:var(--text-dim)}
 .empty .big{font-size:2rem;margin-bottom:8px}
+.share-btn{background:none;border:1px solid var(--border);color:var(--text-dim);padding:3px 8px;border-radius:5px;font-size:.7rem;cursor:pointer;transition:all .2s;margin-left:8px}
+.share-btn:hover{border-color:var(--orange);color:var(--orange)}
+.share-btn.copied{border-color:#6bc46b;color:#6bc46b}
+.share-hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--orange);color:#111;padding:8px 20px;border-radius:8px;font-size:.85rem;font-weight:600;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+.share-hint.show{opacity:1}
 .zone-tag{font-weight:600}
 .z1{color:#6bc46b}.z2{color:#4db8e0}.z3{color:#e0c94d}.z4{color:#e08a4d}.z5{color:#e04d4d}
 @media(max-width:600px){.header{padding:14px 12px}.container{padding:10px}.card{padding:12px}.card-top{gap:6px}.duration{margin-left:0;width:100%;text-align:left}.sport-tabs{gap:4px}.sport-tab{padding:5px 12px;font-size:.7rem}.zone-legend{gap:8px}}
@@ -90,6 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="category-browser" id="categoryBrowser"></div>
 <div class="results" id="results"></div>
 </div>
+<div class="share-hint" id="shareHint">Link copied to clipboard!</div>
 <script>
 const W=[
 // Running Recovery
@@ -622,10 +628,26 @@ return `<div class="card">
 <span class="code">${w[0]}</span>
 ${sportBadge(w[4])}
 <span class="category">${w[3]}</span>
+<button class="share-btn" onclick="shareWorkout('${w[0]}',this,event)">&#128279; Share</button>
 <span class="duration">${formatDuration(w[1],w[4])}</span>
 </div>
 <div class="description">${colorZones(w[2])}</div>
 </div>`;
+}
+
+function shareWorkout(code,btn,e){
+e.stopPropagation();
+const url=new URL(window.location);
+url.searchParams.set('q',code);
+url.searchParams.delete('sport');
+const link=url.toString();
+navigator.clipboard.writeText(link).then(()=>{
+btn.textContent='Copied!';
+btn.classList.add('copied');
+const hint=document.getElementById('shareHint');
+hint.classList.add('show');
+setTimeout(()=>{hint.classList.remove('show');btn.innerHTML='&#128279; Share';btn.classList.remove('copied');},2000);
+});
 }
 
 const searchEl=document.getElementById('search');
@@ -717,7 +739,41 @@ renderCategoryBrowser(filtered);
 }
 }
 
-searchEl.addEventListener('input',update);
+// URL sync: read params on load
+function loadFromURL(){
+const params=new URLSearchParams(window.location.search);
+const q=params.get('q')||'';
+const sport=params.get('sport')||'All';
+searchEl.value=q;
+if(['All','Run','Bike','Swim'].includes(sport)){
+activeSport=sport;
+document.querySelectorAll('.sport-tab').forEach(b=>{
+b.classList.remove('active','active-run','active-bike','active-swim');
+if(b.dataset.sport===sport){
+if(sport==='All')b.classList.add('active');
+else b.classList.add('active','active-'+sport.toLowerCase());
+}
+});
+}
+}
+
+// URL sync: update params on change
+function syncURL(){
+const params=new URLSearchParams();
+const q=searchEl.value.trim();
+if(q)params.set('q',q);
+if(activeSport!=='All')params.set('sport',activeSport);
+const newURL=params.toString()?'?'+params.toString():window.location.pathname;
+history.replaceState(null,'',newURL);
+}
+
+searchEl.addEventListener('input',()=>{update();syncURL();});
+
+// Also sync URL on sport tab click
+const origTabHandler=document.getElementById('sportTabs');
+origTabHandler.addEventListener('click',()=>setTimeout(syncURL,0));
+
+loadFromURL();
 update();
 </script>
 </body>
