@@ -1,4 +1,4 @@
-const CACHE_NAME = '8020-workouts-v2';
+const CACHE_NAME = '8020-workouts-v3';
 const ASSETS = [
   '/index.html',
   '/manifest.json',
