@@ -1,0 +1,18 @@
+{
+  "name": "Golf Practice Log",
+  "short_name": "Golf Log",
+  "description": "Log lessons, range sessions, and rounds — structured for AI-powered practice recommendations",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#57b84a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

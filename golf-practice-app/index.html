@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Golf Practice Log</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#57b84a">
+  <meta name="description" content="Log lessons, range sessions, and rounds — structured for AI-powered practice recommendations">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Golf Log">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    :root {
+      --bg: #1a1a1a;
+      --card: #242424;
+      --card-hover: #2a2a2a;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --green: #57b84a;
+      --green-dim: #3f8c36;
+      --border: #333;
+      --input-bg: #2c2c2c;
+      --warn: #e0c94d;
+      --bad: #e0684d
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-text-size-adjust: 100%
+    }
+
+    .header {
+      background: #111;
+      border-bottom: 2px solid var(--green);
+      padding: 16px 16px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 700
+    }
+
+    .header h1 span {
+      color: var(--green)
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: .8rem;
+      margin-top: 3px
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 12px
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      font-size: .9rem;
+      font-family: inherit;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: color .15s, border-color .15s
+    }
+
+    .tab.active {
+      color: var(--green);
+      border-bottom-color: var(--green)
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 18px 16px 64px
+    }
+
+    .view {
+      display: none
+    }
+
+    .view.active {
+      display: block
+    }
+
+    /* ---- type picker ---- */
+    .type-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px
+    }
+
+    .type-btn {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .85rem;
+      padding: 14px 6px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s
+    }
+
+    .type-btn:hover {
+      background: var(--card-hover)
+    }
+
+    .type-btn.active {
+      border-color: var(--green);
+      color: var(--green)
+    }
+
+    .type-btn .emoji {
+      display: block;
+      font-size: 1.4rem;
+      margin-bottom: 4px
+    }
+
+    /* ---- forms ---- */
+    .field {
+      margin-bottom: 16px
+    }
+
+    .field > label {
+      display: block;
+      font-size: .8rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      font-weight: 600;
+      letter-spacing: .02em
+    }
+
+    .field .hint {
+      font-size: .72rem;
+      color: #666;
+      margin-top: 4px;
+      font-weight: 400
+    }
+
+    input[type=text], input[type=number], input[type=date], textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--green)
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.5
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    @media (max-width:480px) {
+      .field-grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* ---- chips ---- */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .chip {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: .78rem;
+      padding: 5px 11px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .chip:hover {
+      border-color: #555
+    }
+
+    .chip.on {
+      background: var(--green-dim);
+      border-color: var(--green);
+      color: #fff
+    }
+
+    /* ---- rating ---- */
+    .rating {
+      display: flex;
+      gap: 6px
+    }
+
+    .rating .dot {
+      flex: 1;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: .85rem;
+      padding: 8px 0;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .rating .dot.on {
+      background: var(--green-dim);
+      border-color: var(--green);
+      color: #fff
+    }
+
+    /* ---- repeatable rows ---- */
+    .rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .row-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      position: relative
+    }
+
+    .row-item .row-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px
+    }
+
+    .row-item .sub label {
+      display: block;
+      font-size: .7rem;
+      color: var(--text-dim);
+      margin-bottom: 3px
+    }
+
+    .row-item input, .row-item select {
+      padding: 7px 9px;
+      font-size: .85rem;
+      border-width: 1px
+    }
+
+    .row-del {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 2px 6px
+    }
+
+    .row-del:hover {
+      color: var(--bad)
+    }
+
+    /* ---- buttons ---- */
+    .btn {
+      background: var(--green-dim);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: .92rem;
+      font-weight: 600;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: background .15s
+    }
+
+    .btn:hover {
+      background: var(--green)
+    }
+
+    .btn.ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim)
+    }
+
+    .btn.ghost:hover {
+      background: var(--card-hover);
+      color: var(--text)
+    }
+
+    .btn.sm {
+      font-size: .8rem;
+      padding: 7px 12px;
+      font-weight: 500
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border)
+    }
+
+    .form-actions .btn:first-child {
+      flex: 1
+    }
+
+    /* ---- entry list ---- */
+    .entry {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px
+    }
+
+    .entry.lesson {
+      border-left-color: #4db8e0
+    }
+
+    .entry.range {
+      border-left-color: var(--green)
+    }
+
+    .entry.round {
+      border-left-color: #e0a04d
+    }
+
+    .entry-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px
+    }
+
+    .entry-title {
+      font-weight: 600;
+      font-size: .95rem
+    }
+
+    .entry-date {
+      color: var(--text-dim);
+      font-size: .78rem;
+      white-space: nowrap
+    }
+
+    .entry-summary {
+      color: var(--text-dim);
+      font-size: .84rem;
+      line-height: 1.5
+    }
+
+    .entry-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 14px;
+      margin-top: 8px;
+      font-size: .78rem
+    }
+
+    .entry-metrics b {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .entry-metrics span {
+      color: var(--text-dim)
+    }
+
+    .entry-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px
+    }
+
+    .tag {
+      background: #2e2e2e;
+      border-radius: 4px;
+      color: #9a9a9a;
+      font-size: .7rem;
+      padding: 2px 7px
+    }
+
+    .entry-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px
+    }
+
+    .entry-note {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #2e2e2e;
+      font-size: .82rem;
+      color: #a8a8a8;
+      line-height: 1.5;
+      white-space: pre-wrap
+    }
+
+    /* ---- insights ---- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+      gap: 8px;
+      margin-bottom: 18px
+    }
+
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center
+    }
+
+    .stat .v {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--green)
+    }
+
+    .stat .v.muted {
+      color: #555
+    }
+
+    .stat .k {
+      font-size: .7rem;
+      color: var(--text-dim);
+      margin-top: 3px;
+      line-height: 1.3
+    }
+
+    h2.section {
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-dim);
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    h2.section:first-child {
+      margin-top: 0
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 92px 1fr 42px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: .8rem
+    }
+
+    .bar-row .lbl {
+      color: var(--text-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .bar-track {
+      background: #2e2e2e;
+      border-radius: 3px;
+      height: 8px;
+      overflow: hidden
+    }
+
+    .bar-fill {
+      background: var(--green-dim);
+      height: 100%
+    }
+
+    .bar-row .num {
+      color: var(--text-dim);
+      text-align: right;
+      font-variant-numeric: tabular-nums
+    }
+
+    .callout {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: .84rem;
+      line-height: 1.55;
+      color: #b8b8b8;
+      margin-bottom: 10px
+    }
+
+    .callout b {
+      color: var(--text)
+    }
+
+    .callout.warn {
+      border-left: 3px solid var(--warn)
+    }
+
+    .callout.ok {
+      border-left: 3px solid var(--green)
+    }
+
+    pre.json {
+      background: #141414;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: .72rem;
+      line-height: 1.45;
+      color: #b0b0b0;
+      overflow: auto;
+      max-height: 340px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--text-dim);
+      padding: 44px 16px;
+      font-size: .9rem;
+      line-height: 1.6
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      flex-wrap: wrap
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: var(--green-dim);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: .87rem;
+      transition: transform .22s;
+      z-index: 100;
+      max-width: 90vw;
+      text-align: center
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    .inline-note {
+      font-size: .78rem;
+      color: #666;
+      line-height: 1.55;
+      margin-top: 8px
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1><span>Golf</span> Practice Log</h1>
+    <p>Lessons · Range · Rounds — structured for AI coaching</p>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-view="log">Log</button>
+      <button class="tab" data-view="history">History</button>
+      <button class="tab" data-view="insights">Insights</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="view active" id="view-log">
+      <div class="type-picker" id="typePicker"></div>
+      <form id="entryForm" autocomplete="off"></form>
+    </div>
+
+    <div class="view" id="view-history">
+      <div class="filter-row" id="historyFilter"></div>
+      <div id="entryList"></div>
+      <div class="btn-row" style="margin-top:20px">
+        <button class="btn ghost sm" id="exportBtn">Export JSON</button>
+        <button class="btn ghost sm" id="importBtn">Import JSON</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+    </div>
+
+    <div class="view" id="view-insights">
+      <div id="insights"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    'use strict';
+
+    /* =========================================================================
+     * 1. SCHEMA
+     *
+     * The schema is the contract between the logging UI and any downstream
+     * AI consumer. It drives three things at once:
+     *   - how the entry forms render
+     *   - how entries are validated/normalised on save
+     *   - what gets published in the AI context bundle (`schema` key), so a
+     *     model receiving the data knows the units and the allowed vocabulary
+     *     it should use in its own output.
+     * Bump SCHEMA_VERSION and add a migration whenever a field changes meaning.
+     * ====================================================================== */
+
+    const SCHEMA_VERSION = 1;
+    const STORAGE_KEY = 'golfPracticeLog.v1';
+
+    const VOCAB = {
+      clubs: ['Driver', '3 Wood', '5 Wood', 'Hybrid', '3 Iron', '4 Iron', '5 Iron', '6 Iron',
+        '7 Iron', '8 Iron', '9 Iron', 'PW', 'GW', 'SW', 'LW', 'Putter'],
+      misses: ['Straight', 'Push', 'Pull', 'Fade', 'Draw', 'Slice', 'Hook', 'Thin', 'Fat',
+        'Toe', 'Heel', 'Shank', 'Top'],
+      focus: ['Setup', 'Grip', 'Alignment', 'Posture', 'Takeaway', 'Backswing', 'Transition',
+        'Downswing', 'Impact', 'Release', 'Tempo', 'Driving', 'Iron play', 'Wedges',
+        'Chipping', 'Pitching', 'Bunker', 'Putting', 'Green reading',
+        'Course management', 'Pre-shot routine', 'Mental game'],
+      intents: ['Warm-up', 'Technique', 'Calibration', 'Pressure', 'Play simulation'],
+      practiceTypes: ['Blocked', 'Random', 'Mixed'],
+      conditions: ['Calm', 'Windy', 'Wet', 'Cold', 'Hot', 'Firm', 'Soft']
+    };
+
+    // Fields every entry type shares. Kept separate so the AI bundle can
+    // describe them once instead of three times.
+    const COMMON_HEAD = [
+      { key: 'date', label: 'Date', type: 'date', required: true, ai: 'ISO calendar date (YYYY-MM-DD) the session happened' },
+      { key: 'durationMin', label: 'Duration', type: 'number', unit: 'minutes', min: 0, max: 600, hint: 'e.g. 60', ai: 'Total session length in minutes' }
+    ];
+
+    const COMMON_TAIL = [
+      { key: 'focus', label: 'Focus areas', type: 'chips', options: VOCAB.focus, ai: 'Skill areas this session touched; the join key between lessons and later practice' },
+      { key: 'notes', label: 'Notes', type: 'textarea', rows: 3, hint: 'Anything the numbers do not capture', ai: 'Free-text observations. Lowest-trust field: treat as subjective colour, not fact' }
+    ];
+
+    const TYPES = {
+      lesson: {
+        label: 'Lesson', emoji: '\u{1F393}',
+        ai: 'A coaching session. Establishes intent: what the player was TOLD to work on.',
+        fields: [
+          { key: 'coach', label: 'Coach', type: 'text', hint: 'Name or facility' },
+          {
+            key: 'feels', label: 'Swing feels / cues given', type: 'textarea', rows: 2,
+            hint: 'The cues your coach gave you, in their words',
+            ai: 'Verbatim coaching cues. Useful for keeping recommendations in the player’s existing language'
+          },
+          {
+            key: 'drills', label: 'Drills prescribed', type: 'rows', addLabel: '+ Add drill',
+            ai: 'Drills the coach assigned. Adherence to these is measurable against later range blocks',
+            fields: [
+              { key: 'name', label: 'Drill', type: 'text' },
+              { key: 'dose', label: 'Dose', type: 'text', hint: '3x10' },
+              { key: 'club', label: 'Club', type: 'select', options: VOCAB.clubs }
+            ]
+          },
+          { key: 'takeaway', label: 'Main takeaway', type: 'text', hint: 'One sentence', ai: 'Player’s own summary of the lesson' },
+          { key: 'understanding', label: 'How well did it click?', type: 'rating', ai: '1-5 self-report of how well the player understood the change' }
+        ]
+      },
+
+      range: {
+        label: 'Range', emoji: '\u{1F3AF}',
+        ai: 'A practice session. Establishes effort: what the player ACTUALLY worked on, and how well it went.',
+        fields: [
+          { key: 'location', label: 'Location', type: 'text', hint: 'Facility or bay' },
+          {
+            key: 'practiceType', label: 'Practice structure', type: 'select', options: VOCAB.practiceTypes,
+            hint: 'Blocked = same shot repeatedly. Random = change target/club every ball.',
+            ai: 'Blocked practice builds a motor pattern; random practice transfers to the course. The ratio is a first-class coaching signal'
+          },
+          {
+            key: 'blocks', label: 'Practice blocks', type: 'rows', addLabel: '+ Add block',
+            ai: 'Shot-level detail. `good` counts shots that met the stated intent, so good/shots is a per-club success rate',
+            fields: [
+              { key: 'club', label: 'Club', type: 'select', options: VOCAB.clubs },
+              { key: 'intent', label: 'Intent', type: 'select', options: VOCAB.intents },
+              { key: 'shots', label: 'Shots', type: 'number', min: 0, max: 500 },
+              { key: 'good', label: 'Good', type: 'number', min: 0, max: 500 },
+              { key: 'miss', label: 'Main miss', type: 'select', options: VOCAB.misses },
+              { key: 'carryYds', label: 'Carry', type: 'number', unit: 'yards', min: 0, max: 400 }
+            ]
+          },
+          { key: 'quality', label: 'Session quality', type: 'rating', ai: '1-5 self-report of how well the player struck it' },
+          { key: 'fatigue', label: 'Fatigue', type: 'rating', ai: '1-5, where 5 is most fatigued. Context for interpreting a poor quality score' }
+        ]
+      },
+
+      round: {
+        label: 'Round', emoji: '⛳',
+        ai: 'A round of golf. Establishes outcome: whether practice is transferring to the course.',
+        fields: [
+          { key: 'course', label: 'Course', type: 'text' },
+          {
+            key: 'holesPlayed', label: 'Holes', type: 'select', options: ['9', '18'], required: true,
+            ai: 'Denominator for every per-hole rate below. Required for stats to be comparable'
+          },
+          { key: 'coursePar', label: 'Par', type: 'number', min: 27, max: 80, hint: '72', ai: 'Par for the holes played, so score can be normalised to par' },
+          { key: 'score', label: 'Score', type: 'number', min: 27, max: 200, required: true, ai: 'Total strokes' },
+          { key: 'putts', label: 'Putts', type: 'number', min: 0, max: 90 },
+          { key: 'threePutts', label: '3-putts', type: 'number', min: 0, max: 18 },
+          { key: 'fairwaysHit', label: 'Fairways hit', type: 'number', min: 0, max: 18 },
+          { key: 'fairwayAttempts', label: 'Driving holes', type: 'number', min: 0, max: 18, hint: 'usually 14', ai: 'Holes where a fairway was in play (excludes par 3s). Denominator for FIR%' },
+          { key: 'gir', label: 'Greens in reg.', type: 'number', min: 0, max: 18 },
+          { key: 'upDowns', label: 'Up & downs', type: 'number', min: 0, max: 18 },
+          { key: 'upDownAttempts', label: 'Scramble chances', type: 'number', min: 0, max: 18, ai: 'Holes where the green was missed. Denominator for up&down%' },
+          { key: 'penalties', label: 'Penalty strokes', type: 'number', min: 0, max: 30 },
+          { key: 'dominantMiss', label: 'Dominant miss', type: 'select', options: VOCAB.misses, ai: 'The shot shape that cost the most strokes this round' },
+          { key: 'conditions', label: 'Conditions', type: 'chips', options: VOCAB.conditions, ai: 'Confounders. A high score in Windy+Wet should not be read as a skill regression' },
+          { key: 'mental', label: 'Mental game', type: 'rating', ai: '1-5 self-report of focus, routine adherence, and composure' }
+        ]
+      }
+    };
+
+    function typeFields(type) {
+      return [...COMMON_HEAD, ...TYPES[type].fields, ...COMMON_TAIL];
+    }
+
+    /* =========================================================================
+     * 2. STORE
+     * ====================================================================== */
+
+    function emptyStore() {
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        profile: { handicap: null, homeCourse: '', goals: '' },
+        entries: []
+      };
+    }
+
+    function migrate(store) {
+      // No prior versions yet. Each future bump appends a step here and the
+      // AI bundle keeps reporting the version it was generated against.
+      const v = store.schemaVersion || 0;
+      if (v > SCHEMA_VERSION) console.warn('Data is from a newer app version; some fields may be ignored.');
+      store.schemaVersion = SCHEMA_VERSION;
+      store.profile = Object.assign({ handicap: null, homeCourse: '', goals: '' }, store.profile || {});
+      store.entries = Array.isArray(store.entries) ? store.entries : [];
+      return store;
+    }
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return emptyStore();
+        return migrate(JSON.parse(raw));
+      } catch (err) {
+        console.error('Could not read saved log, starting empty:', err);
+        return emptyStore();
+      }
+    }
+
+    function saveStore() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(STORE));
+      } catch (err) {
+        console.error(err);
+        toast('Could not save — storage may be full');
+      }
+    }
+
+    let STORE = loadStore();
+    let editingId = null;
+    let activeType = 'range';
+    let historyFilter = 'all';
+
+    /* =========================================================================
+     * 3. HELPERS
+     * ====================================================================== */
+
+    const esc = s => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    const todayISO = () => {
+      const d = new Date();
+      return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+    };
+
+    // Parse 'YYYY-MM-DD' at local noon so timezone offsets can never shift the day.
+    const parseDate = s => new Date(s + 'T12:00:00');
+
+    const daysBetween = (a, b) => Math.round((b - a) / 86400000);
+
+    const fmtDate = s => {
+      if (!s) return '';
+      const d = parseDate(s);
+      const days = daysBetween(d, parseDate(todayISO()));
+      const abs = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      if (days === 0) return 'Today';
+      if (days === 1) return 'Yesterday';
+      if (days > 1 && days < 7) return days + 'd ago';
+      return abs;
+    };
+
+    const num = v => (typeof v === 'number' && isFinite(v)) ? v : null;
+    const sum = (arr, f) => arr.reduce((t, x) => t + (num(f(x)) || 0), 0);
+    const round1 = n => Math.round(n * 10) / 10;
+    const pct = (a, b) => b > 0 ? Math.round((a / b) * 100) : null;
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    // Strip nulls, empty strings, and empty arrays so the AI bundle carries
+    // signal only. An absent key means "not recorded" — never zero.
+    function compact(value) {
+      if (Array.isArray(value)) {
+        const arr = value.map(compact).filter(v => v !== undefined);
+        return arr.length ? arr : undefined;
+      }
+      if (value && typeof value === 'object') {
+        const out = {};
+        for (const k of Object.keys(value)) {
+          const v = compact(value[k]);
+          if (v !== undefined) out[k] = v;
+        }
+        return Object.keys(out).length ? out : undefined;
+      }
+      if (value === null || value === '' || value === undefined) return undefined;
+      return value;
+    }
+
+    /* =========================================================================
+     * 4. FORM RENDERING (driven by the schema)
+     * ====================================================================== */
+
+    function renderControl(f, val) {
+      const key = esc(f.key);
+      switch (f.type) {
+        case 'textarea':
+          return `<textarea data-key="${key}" rows="${f.rows || 3}" placeholder="${esc(f.hint || '')}">${esc(val)}</textarea>`;
+
+        case 'number':
+          return `<input type="number" inputmode="decimal" data-key="${key}"` +
+            ` value="${val == null ? '' : esc(val)}"` +
+            (f.min != null ? ` min="${f.min}"` : '') +
+            (f.max != null ? ` max="${f.max}"` : '') +
+            ` placeholder="${esc(f.hint || '')}">`;
+
+        case 'date':
+          return `<input type="date" data-key="${key}" value="${esc(val || todayISO())}">`;
+
+        case 'select': {
+          const opts = ['<option value="">—</option>'].concat(
+            f.options.map(o => `<option value="${esc(o)}"${String(o) === String(val) ? ' selected' : ''}>${esc(o)}</option>`)
+          );
+          return `<select data-key="${key}">${opts.join('')}</select>`;
+        }
+
+        case 'chips': {
+          const on = Array.isArray(val) ? val : [];
+          return `<div class="chips" data-key="${key}">` +
+            f.options.map(o => `<button type="button" class="chip${on.includes(o) ? ' on' : ''}" data-val="${esc(o)}">${esc(o)}</button>`).join('') +
+            `</div>`;
+        }
+
+        case 'rating': {
+          const v = num(val);
+          return `<div class="rating" data-key="${key}" data-value="${v == null ? '' : v}">` +
+            [1, 2, 3, 4, 5].map(n => `<button type="button" class="dot${v === n ? ' on' : ''}" data-val="${n}">${n}</button>`).join('') +
+            `</div>`;
+        }
+
+        case 'rows': {
+          const items = Array.isArray(val) && val.length ? val : [{}];
+          return `<div class="rows" data-key="${key}" data-rows="${key}">` +
+            items.map(item => rowItemHTML(f, item)).join('') +
+            `</div><button type="button" class="btn ghost sm" data-add-row="${key}" style="margin-top:8px">${esc(f.addLabel || '+ Add')}</button>`;
+        }
+
+        default:
+          return `<input type="text" data-key="${key}" value="${esc(val)}" placeholder="${esc(f.hint || '')}">`;
+      }
+    }
+
+    function rowItemHTML(f, item) {
+      item = item || {};
+      return `<div class="row-item">` +
+        `<button type="button" class="row-del" title="Remove">×</button>` +
+        `<div class="row-grid">` +
+        f.fields.map(sf => `<div class="sub"><label>${esc(sf.label)}${sf.unit ? ` <span style="color:#555">(${esc(sf.unit)})</span>` : ''}</label>${renderControl(sf, item[sf.key])}</div>`).join('') +
+        `</div></div>`;
+    }
+
+    function fieldHTML(f, val) {
+      const unit = f.unit ? ` <span style="color:#555;font-weight:400">(${esc(f.unit)})</span>` : '';
+      const hint = f.hint && f.type !== 'text' && f.type !== 'number' && f.type !== 'textarea'
+        ? `<div class="hint">${esc(f.hint)}</div>` : '';
+      return `<div class="field"><label>${esc(f.label)}${unit}</label>${renderControl(f, val)}${hint}</div>`;
+    }
+
+    function renderForm() {
+      const form = document.getElementById('entryForm');
+      const entry = editingId ? STORE.entries.find(e => e.id === editingId) : null;
+      const fields = typeFields(activeType);
+
+      // Pair short numeric fields side-by-side so round logging is not a
+      // 14-row vertical slog on a phone.
+      const html = [];
+      let i = 0;
+      while (i < fields.length) {
+        const f = fields[i];
+        const next = fields[i + 1];
+        const pairable = fl => fl && (fl.type === 'number' || fl.type === 'select') && fl.type !== 'rows';
+        if (pairable(f) && pairable(next)) {
+          html.push(`<div class="field-grid">${fieldHTML(f, entry ? entry[f.key] : undefined)}${fieldHTML(next, entry ? entry[next.key] : undefined)}</div>`);
+          i += 2;
+        } else {
+          html.push(fieldHTML(f, entry ? entry[f.key] : undefined));
+          i += 1;
+        }
+      }
+
+      html.push(`<div class="form-actions">
+        <button type="submit" class="btn">${editingId ? 'Save changes' : 'Save ' + TYPES[activeType].label.toLowerCase() + ' entry'}</button>
+        ${editingId ? '<button type="button" class="btn ghost" id="cancelEdit">Cancel</button>' : ''}
+      </div>`);
+
+      form.innerHTML = html.join('');
+    }
+
+    function readControl(f, scope) {
+      const el = scope.querySelector(`[data-key="${f.key}"]`);
+      if (!el) return undefined;
+      switch (f.type) {
+        case 'chips':
+          return [...el.querySelectorAll('.chip.on')].map(c => c.dataset.val);
+        case 'rating':
+          return el.dataset.value === '' ? null : Number(el.dataset.value);
+        case 'number': {
+          const raw = el.value.trim();
+          if (raw === '') return null;
+          const n = Number(raw);
+          return isFinite(n) ? n : null;
+        }
+        case 'rows': {
+          const rows = [...el.querySelectorAll('.row-item')]
+            .map(r => {
+              const obj = {};
+              f.fields.forEach(sf => { obj[sf.key] = readControl(sf, r); });
+              return obj;
+            })
+            // Drop rows the user added but never filled in.
+            .filter(r => Object.values(r).some(v => v !== null && v !== '' && v !== undefined));
+          return rows;
+        }
+        default:
+          return el.value.trim();
+      }
+    }
+
+    function readForm() {
+      const form = document.getElementById('entryForm');
+      const entry = { type: activeType };
+      typeFields(activeType).forEach(f => {
+        const v = readControl(f, form);
+        if (v !== undefined) entry[f.key] = v;
+      });
+      return entry;
+    }
+
+    function validate(entry) {
+      const errs = [];
+      typeFields(entry.type).forEach(f => {
+        if (!f.required) return;
+        const v = entry[f.key];
+        if (v === null || v === undefined || v === '') errs.push(f.label + ' is required');
+      });
+      if (entry.type === 'round') {
+        const holes = Number(entry.holesPlayed);
+        if (entry.fairwaysHit != null && entry.fairwayAttempts != null && entry.fairwaysHit > entry.fairwayAttempts)
+          errs.push('Fairways hit cannot exceed driving holes');
+        if (entry.upDowns != null && entry.upDownAttempts != null && entry.upDowns > entry.upDownAttempts)
+          errs.push('Up & downs cannot exceed scramble chances');
+        if (entry.gir != null && holes && entry.gir > holes)
+          errs.push('Greens in regulation cannot exceed holes played');
+      }
+      if (entry.type === 'range' && Array.isArray(entry.blocks)) {
+        if (entry.blocks.some(b => b.good != null && b.shots != null && b.good > b.shots))
+          errs.push('Good shots cannot exceed shots hit in a block');
+      }
+      return errs;
+    }
+
+    /* =========================================================================
+     * 5. ENTRY LIST
+     * ====================================================================== */
+
+    function entrySummary(e) {
+      if (e.type === 'lesson') {
+        return [e.coach && 'with ' + e.coach, e.takeaway].filter(Boolean).join(' — ') || 'Lesson';
+      }
+      if (e.type === 'range') {
+        const shots = sum(e.blocks || [], b => b.shots);
+        const bits = [];
+        if (shots) bits.push(shots + ' shots');
+        if (e.practiceType) bits.push(e.practiceType.toLowerCase() + ' practice');
+        if (e.location) bits.push('at ' + e.location);
+        return bits.join(' · ') || 'Range session';
+      }
+      const bits = [];
+      if (e.course) bits.push(e.course);
+      if (e.holesPlayed) bits.push(e.holesPlayed + ' holes');
+      return bits.join(' · ') || 'Round';
+    }
+
+    function entryMetrics(e) {
+      const m = [];
+      if (e.type === 'round') {
+        if (num(e.score) != null) {
+          const par = num(e.coursePar);
+          const toPar = par != null ? e.score - par : null;
+          m.push(['Score', e.score + (toPar != null ? ` (${toPar > 0 ? '+' : ''}${toPar})` : '')]);
+        }
+        if (num(e.putts) != null) m.push(['Putts', e.putts]);
+        if (num(e.gir) != null && num(e.holesPlayed) != null) m.push(['GIR', `${e.gir}/${e.holesPlayed}`]);
+        if (num(e.fairwaysHit) != null && num(e.fairwayAttempts) != null) m.push(['FIR', `${e.fairwaysHit}/${e.fairwayAttempts}`]);
+        if (num(e.penalties)) m.push(['Penalties', e.penalties]);
+        if (e.dominantMiss) m.push(['Miss', e.dominantMiss]);
+      } else if (e.type === 'range') {
+        const shots = sum(e.blocks || [], b => b.shots);
+        const good = sum(e.blocks || [], b => b.good);
+        if (shots) m.push(['Strike rate', pct(good, shots) + '%']);
+        if (num(e.quality) != null) m.push(['Quality', e.quality + '/5']);
+        if (num(e.fatigue) != null) m.push(['Fatigue', e.fatigue + '/5']);
+      } else {
+        if ((e.drills || []).length) m.push(['Drills', e.drills.length]);
+        if (num(e.understanding) != null) m.push(['Clicked', e.understanding + '/5']);
+      }
+      if (num(e.durationMin)) m.push(['Time', e.durationMin + ' min']);
+      return m;
+    }
+
+    function renderHistory() {
+      const wrap = document.getElementById('entryList');
+      const filterWrap = document.getElementById('historyFilter');
+
+      filterWrap.innerHTML = ['all', 'lesson', 'range', 'round'].map(t =>
+        `<button class="chip${historyFilter === t ? ' on' : ''}" data-filter="${t}">${t === 'all' ? 'All' : TYPES[t].label}</button>`
+      ).join('');
+
+      const entries = STORE.entries
+        .filter(e => historyFilter === 'all' || e.type === historyFilter)
+        .slice()
+        .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+      if (!entries.length) {
+        wrap.innerHTML = `<div class="empty">No entries yet.<br>Log a lesson, range session, or round to get started.
+          <div style="margin-top:16px"><button class="btn ghost sm" data-sample="1">Load sample data</button></div></div>`;
+        return;
+      }
+
+      wrap.innerHTML = entries.map(e => {
+        const metrics = entryMetrics(e);
+        return `<div class="entry ${e.type}">
+          <div class="entry-head">
+            <div class="entry-title">${TYPES[e.type].emoji} ${esc(TYPES[e.type].label)}</div>
+            <div class="entry-date">${esc(fmtDate(e.date))}</div>
+          </div>
+          <div class="entry-summary">${esc(entrySummary(e))}</div>
+          ${metrics.length ? `<div class="entry-metrics">${metrics.map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join('')}</div>` : ''}
+          ${(e.focus || []).length ? `<div class="entry-tags">${e.focus.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
+          ${e.notes ? `<div class="entry-note">${esc(e.notes)}</div>` : ''}
+          <div class="entry-actions">
+            <button class="btn ghost sm" data-edit="${esc(e.id)}">Edit</button>
+            <button class="btn ghost sm" data-del="${esc(e.id)}">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* =========================================================================
+     * 6. ROLLUPS
+     *
+     * Aggregates are computed here, deterministically, rather than left for a
+     * model to derive from raw entries. Language models are unreliable at
+     * arithmetic over many rows, so the AI bundle ships the numbers already
+     * worked out and asks the model to interpret them instead.
+     * ====================================================================== */
+
+    function inWindow(entries, windowDays) {
+      const today = parseDate(todayISO());
+      return entries.filter(e => e.date && daysBetween(parseDate(e.date), today) <= windowDays);
+    }
+
+    function computeRollups(entries, windowDays) {
+      const today = parseDate(todayISO());
+      const win = inWindow(entries, windowDays);
+      const byType = t => win.filter(e => e.type === t).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const lessons = byType('lesson'), ranges = byType('range'), rounds = byType('round');
+
+      const r = { windowDays, counts: {}, volume: {}, rounds: {}, practice: {}, misses: {}, adherence: {}, recency: {} };
+
+      r.counts = { lessons: lessons.length, rangeSessions: ranges.length, rounds: rounds.length, total: win.length };
+
+      // ---- volume ----
+      r.volume = {
+        totalMinutes: sum(win, e => e.durationMin) || null,
+        rangeMinutes: sum(ranges, e => e.durationMin) || null,
+        ballsHit: sum(ranges, e => sum(e.blocks || [], b => b.shots)) || null,
+        sessionsPerWeek: win.length ? round1(win.length / (windowDays / 7)) : 0
+      };
+
+      // ---- round scoring ----
+      const scored = rounds.filter(e => num(e.score) != null);
+      const toPars = scored.filter(e => num(e.coursePar) != null).map(e => e.score - e.coursePar);
+      const r18 = scored.filter(e => Number(e.holesPlayed) === 18);
+      const holes = sum(rounds, e => Number(e.holesPlayed) || 0);
+
+      const denom = (numer, den) => {
+        const n = sum(rounds, e => e[numer]), d = sum(rounds, e => e[den]);
+        return d > 0 ? { made: n, of: d, pct: pct(n, d) } : null;
+      };
+
+      r.rounds = {
+        played: rounds.length,
+        avgScore18: r18.length ? round1(sum(r18, e => e.score) / r18.length) : null,
+        avgToPar: toPars.length ? round1(toPars.reduce((a, b) => a + b, 0) / toPars.length) : null,
+        bestToPar: toPars.length ? Math.min(...toPars) : null,
+        puttsPerHole: (sum(rounds, e => e.putts) && holes) ? round1(sum(rounds, e => e.putts) / holes) : null,
+        threePuttsPerRound: rounds.length && sum(rounds, e => e.threePutts) ? round1(sum(rounds, e => e.threePutts) / rounds.length) : null,
+        fairways: denom('fairwaysHit', 'fairwayAttempts'),
+        girPct: holes ? pct(sum(rounds, e => e.gir), holes) : null,
+        scramble: denom('upDowns', 'upDownAttempts'),
+        penaltiesPerRound: rounds.length ? round1(sum(rounds, e => e.penalties) / rounds.length) : null,
+        // Trend compares the most recent block of rounds against the one before
+        // it. Reported only with >= 6 scored rounds, below which the noise in
+        // golf scoring swamps any real signal.
+        trendToPar: null
+      };
+
+      if (toPars.length >= 6) {
+        const ordered = scored.filter(e => num(e.coursePar) != null); // already newest-first
+        const half = Math.min(5, Math.floor(ordered.length / 2));
+        const recent = ordered.slice(0, half).map(e => e.score - e.coursePar);
+        const prior = ordered.slice(half, half * 2).map(e => e.score - e.coursePar);
+        const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+        r.rounds.trendToPar = {
+          recentN: half, recentAvg: round1(avg(recent)), priorAvg: round1(avg(prior)),
+          deltaStrokes: round1(avg(recent) - avg(prior))
+        };
+      }
+
+      // ---- practice structure & club coverage ----
+      const allBlocks = ranges.flatMap(e => (e.blocks || []).map(b => ({ ...b, _date: e.date })));
+      const shotsTotal = sum(allBlocks, b => b.shots);
+      const structure = {};
+      ranges.forEach(e => {
+        if (!e.practiceType) return;
+        structure[e.practiceType] = (structure[e.practiceType] || 0) + 1;
+      });
+      const byClub = {};
+      allBlocks.forEach(b => {
+        if (!b.club || !num(b.shots)) return;
+        const c = byClub[b.club] || (byClub[b.club] = { shots: 0, good: 0 });
+        c.shots += b.shots;
+        c.good += num(b.good) || 0;
+      });
+
+      r.practice = {
+        structureSessions: Object.keys(structure).length ? structure : null,
+        randomPracticeShare: ranges.length ? pct((structure.Random || 0) + (structure.Mixed || 0) * 0.5, ranges.length) : null,
+        avgQuality: ranges.filter(e => num(e.quality) != null).length
+          ? round1(sum(ranges, e => e.quality) / ranges.filter(e => num(e.quality) != null).length) : null,
+        shotsByClub: Object.keys(byClub).length
+          ? Object.entries(byClub)
+            .sort((a, b) => b[1].shots - a[1].shots)
+            .map(([club, v]) => ({ club, shots: v.shots, strikeRatePct: pct(v.good, v.shots) }))
+          : null,
+        clubsNotPracticed: VOCAB.clubs.filter(c => !byClub[c]),
+        strikeRatePct: shotsTotal ? pct(sum(allBlocks, b => b.good), shotsTotal) : null
+      };
+
+      // ---- miss patterns, reported separately by source ----
+      const tally = (items, key, weight) => {
+        const t = {};
+        items.forEach(x => {
+          const k = x[key];
+          if (!k) return;
+          t[k] = (t[k] || 0) + (weight ? (num(x[weight]) || 0) : 1);
+        });
+        return Object.keys(t).length
+          ? Object.entries(t).sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ pattern: k, weight: v }))
+          : null;
+      };
+      r.misses = {
+        // Practice misses are weighted by shots, round misses are one vote per
+        // round. They are NOT merged — the two have different units and a
+        // practice-range miss is not equivalent evidence to an on-course one.
+        inPractice: tally(allBlocks, 'miss', 'shots'),
+        inRounds: tally(rounds, 'dominantMiss', null)
+      };
+
+      // ---- lesson -> practice adherence ----
+      // For each lesson, did the player actually practise what was taught?
+      // This is the link that makes a recommendation specific rather than
+      // generic, so it is computed explicitly instead of being left implicit
+      // in the raw entries.
+      r.adherence = {
+        byLesson: lessons.map(l => {
+          const after = ranges.filter(e => e.date > l.date);
+          const taught = l.focus || [];
+          const covered = taught.filter(t => after.some(e => (e.focus || []).includes(t)));
+          return {
+            lessonId: l.id,
+            lessonDate: l.date,
+            daysSince: daysBetween(parseDate(l.date), today),
+            taughtAreas: taught,
+            practisedAreas: covered,
+            neglectedAreas: taught.filter(t => !covered.includes(t)),
+            rangeSessionsSince: after.length
+          };
+        }),
+        neglectedAreas: null
+      };
+      const neglected = new Set();
+      r.adherence.byLesson.forEach(l => l.neglectedAreas.forEach(a => neglected.add(a)));
+      r.adherence.neglectedAreas = neglected.size ? [...neglected] : null;
+      if (!r.adherence.byLesson.length) r.adherence.byLesson = null;
+
+      // ---- recency ----
+      const lastOf = list => list.length ? daysBetween(parseDate(list[0].date), today) : null;
+      r.recency = {
+        daysSinceLesson: lastOf(lessons),
+        daysSinceRange: lastOf(ranges),
+        daysSinceRound: lastOf(rounds)
+      };
+
+      return r;
+    }
+
+    /* =========================================================================
+     * 7. AI CONTEXT BUNDLE
+     *
+     * This is the hand-off point for AI-powered recommendations. The bundle is
+     * self-describing: a model receives the schema (units + allowed
+     * vocabularies), precomputed rollups, and the raw entries behind them, so
+     * it can cite specific sessions and answer using the same vocabulary the
+     * app stores.
+     *
+     * Today the bundle is copied/downloaded by hand. To wire up a live
+     * recommendation call, POST exactly this object to a server endpoint that
+     * holds the API key — see README.md. Nothing else in the app needs to
+     * change; this function is the whole interface.
+     * ====================================================================== */
+
+    // Field-level documentation published with the bundle, derived from the
+    // same schema that renders the forms, so the two cannot drift apart.
+    function describeSchema() {
+      const describe = fields => {
+        const out = {};
+        fields.forEach(f => {
+          if (f.type === 'rows') {
+            out[f.key] = { type: 'array', description: f.ai || f.label, items: describe(f.fields) };
+          } else {
+            const d = { type: f.type === 'chips' ? 'string[]' : f.type === 'rating' ? 'integer 1-5' : f.type };
+            if (f.unit) d.unit = f.unit;
+            if (f.options) d.enum = f.options;
+            if (f.ai) d.description = f.ai;
+            out[f.key] = d;
+          }
+        });
+        return out;
+      };
+      const types = {};
+      Object.keys(TYPES).forEach(t => {
+        types[t] = { description: TYPES[t].ai, fields: describe(typeFields(t)) };
+      });
+      return { version: SCHEMA_VERSION, vocabularies: VOCAB, entryTypes: types };
+    }
+
+    function buildAIContext(opts) {
+      const o = Object.assign({ windowDays: 90, maxEntries: 40 }, opts || {});
+      const win = inWindow(STORE.entries, o.windowDays)
+        .slice()
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      const from = new Date(parseDate(todayISO()));
+      from.setDate(from.getDate() - o.windowDays);
+
+      return {
+        schema: describeSchema(),
+        generatedAt: new Date().toISOString(),
+        window: {
+          days: o.windowDays,
+          from: from.toISOString().slice(0, 10),
+          to: todayISO(),
+          entriesInWindow: win.length,
+          entriesIncluded: Math.min(win.length, o.maxEntries)
+        },
+        profile: compact(STORE.profile) || {},
+        rollups: compact(computeRollups(STORE.entries, o.windowDays)) || {},
+        entries: win.slice(0, o.maxEntries).map(e => compact(e)).filter(Boolean)
+      };
+    }
+
+    // The output contract. A recommendation is only actionable if it is shaped
+    // like a practice plan, so the shape is pinned here rather than left to
+    // prose. Pass this straight to `output_config.format` on a Messages API
+    // call to get back JSON the app can render without parsing free text.
+    const RECOMMENDATION_OUTPUT_SCHEMA = {
+      type: 'object',
+      properties: {
+        diagnosis: {
+          type: 'array',
+          description: 'What the data says is limiting the player, strongest first.',
+          items: {
+            type: 'object',
+            properties: {
+              area: { type: 'string', description: 'A value from schema.vocabularies.focus' },
+              statement: { type: 'string' },
+              evidence: { type: 'array', items: { type: 'string' }, description: 'Entry ids or rollup paths that support this' },
+              confidence: { type: 'string', enum: ['low', 'medium', 'high'] }
+            },
+            required: ['area', 'statement', 'evidence', 'confidence'],
+            additionalProperties: false
+          }
+        },
+        plan: {
+          type: 'array',
+          description: 'Concrete sessions for the next two weeks.',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              sessionType: { type: 'string', enum: ['range', 'short game', 'putting', 'on course', 'lesson', 'rest'] },
+              durationMin: { type: 'integer' },
+              practiceType: { type: 'string', enum: ['Blocked', 'Random', 'Mixed'] },
+              blocks: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    club: { type: 'string', description: 'A value from schema.vocabularies.clubs' },
+                    intent: { type: 'string', description: 'A value from schema.vocabularies.intents' },
+                    shots: { type: 'integer' },
+                    successCriteria: { type: 'string', description: 'How the player knows a shot counted as good' }
+                  },
+                  required: ['club', 'intent', 'shots', 'successCriteria'],
+                  additionalProperties: false
+                }
+              },
+              rationale: { type: 'string' }
+            },
+            required: ['title', 'sessionType', 'durationMin', 'practiceType', 'blocks', 'rationale'],
+            additionalProperties: false
+          }
+        },
+        watchItems: {
+          type: 'array',
+          description: 'Metrics to re-check next time, to test whether the plan worked.',
+          items: {
+            type: 'object',
+            properties: {
+              metric: { type: 'string' },
+              current: { type: 'string' },
+              target: { type: 'string' }
+            },
+            required: ['metric', 'current', 'target'],
+            additionalProperties: false
+          }
+        },
+        dataGaps: {
+          type: 'array',
+          description: 'What the player should start logging to make the next recommendation better.',
+          items: { type: 'string' }
+        }
+      },
+      required: ['diagnosis', 'plan', 'watchItems', 'dataGaps'],
+      additionalProperties: false
+    };
+
+    const PROMPT_INSTRUCTIONS = [
+      'You are a golf coach reviewing a player\'s practice and performance log.',
+      '',
+      'HOW TO READ THE DATA',
+      '- `schema` defines every field: its units, and the controlled vocabulary it draws from.',
+      '  Use those exact vocabulary values in your own output so the app can match them.',
+      '- `rollups` are precomputed aggregates. Trust them; do not recompute from `entries`.',
+      '- `entries` are the raw logs, newest first, capped at the most recent few dozen.',
+      '- An absent field means NOT RECORDED. It never means zero. Say so rather than',
+      '  assuming a value, and list it under `dataGaps`.',
+      '- `notes` and `feels` are the player\'s own words: useful colour, weak evidence.',
+      '- `rollups.misses.inPractice` is weighted by shots; `rollups.misses.inRounds` is one',
+      '  vote per round. Do not merge them — a range miss is weaker evidence than a',
+      '  scorecard miss.',
+      '- `rollups.adherence` shows what each lesson taught versus what was actually',
+      '  practised afterwards. Unpractised lesson content is usually a better',
+      '  explanation for a plateau than a new technical theory.',
+      '- Round scoring is noisy. Do not read a trend from fewer than ~6 rounds, and',
+      '  discount rounds logged in adverse `conditions`.',
+      '',
+      'YOUR TASK',
+      'Diagnose what is actually limiting this player, then write a two-week practice',
+      'plan they could follow tomorrow. Cite specific entry ids or rollup paths for every',
+      'claim. Prefer one or two changes done properly over a broad checklist. If the data',
+      'is too thin to support a recommendation, say so plainly and use `dataGaps` to ask',
+      'for what you need.'
+    ].join('\n');
+
+    function buildPrompt(ctx) {
+      return PROMPT_INSTRUCTIONS + '\n\nPLAYER DATA\n```json\n' + JSON.stringify(ctx, null, 2) + '\n```';
+    }
+
+    /* =========================================================================
+     * 8. INSIGHTS VIEW
+     * ====================================================================== */
+
+    const WINDOWS = [30, 90, 365];
+    let insightWindow = 90;
+
+    function statHTML(value, label, suffix) {
+      const has = value !== null && value !== undefined && value !== '';
+      return `<div class="stat"><div class="v${has ? '' : ' muted'}">${has ? esc(value) + (suffix || '') : '—'}</div><div class="k">${esc(label)}</div></div>`;
+    }
+
+    function barsHTML(items, labelKey, valueKey) {
+      if (!items || !items.length) return '<div class="callout">Nothing logged yet.</div>';
+      const max = Math.max(...items.map(i => i[valueKey]));
+      return items.slice(0, 8).map(i => `<div class="bar-row">
+        <div class="lbl">${esc(i[labelKey])}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${max ? (i[valueKey] / max) * 100 : 0}%"></div></div>
+        <div class="num">${esc(i[valueKey])}</div>
+      </div>`).join('');
+    }
+
+    function renderInsights() {
+      const el = document.getElementById('insights');
+
+      if (!STORE.entries.length) {
+        el.innerHTML = `<div class="empty">No data yet.<br>Insights and the AI context bundle appear once you have logged a session.
+          <div style="margin-top:16px"><button class="btn ghost sm" data-sample="1">Load sample data</button></div></div>`;
+        return;
+      }
+
+      const r = computeRollups(STORE.entries, insightWindow);
+      const ctx = buildAIContext({ windowDays: insightWindow });
+
+      const parts = [];
+
+      parts.push(`<div class="filter-row">${WINDOWS.map(w =>
+        `<button class="chip${insightWindow === w ? ' on' : ''}" data-window="${w}">${w === 365 ? 'Last year' : 'Last ' + w + ' days'}</button>`
+      ).join('')}</div>`);
+
+      // ---- activity ----
+      parts.push('<h2 class="section">Activity</h2><div class="stat-grid">' +
+        statHTML(r.counts.rounds, 'Rounds') +
+        statHTML(r.counts.rangeSessions, 'Range sessions') +
+        statHTML(r.counts.lessons, 'Lessons') +
+        statHTML(r.volume.sessionsPerWeek, 'Sessions / week') +
+        statHTML(r.volume.ballsHit, 'Balls hit') +
+        statHTML(r.volume.totalMinutes != null ? Math.round(r.volume.totalMinutes / 60) : null, 'Hours logged') +
+        '</div>');
+
+      // ---- scoring ----
+      if (r.rounds.played) {
+        parts.push('<h2 class="section">Scoring</h2><div class="stat-grid">' +
+          statHTML(r.rounds.avgScore18, 'Avg score (18)') +
+          statHTML(r.rounds.avgToPar != null ? (r.rounds.avgToPar > 0 ? '+' : '') + r.rounds.avgToPar : null, 'Avg to par') +
+          statHTML(r.rounds.bestToPar != null ? (r.rounds.bestToPar > 0 ? '+' : '') + r.rounds.bestToPar : null, 'Best to par') +
+          statHTML(r.rounds.girPct, 'GIR', '%') +
+          statHTML(r.rounds.fairways ? r.rounds.fairways.pct : null, 'Fairways', '%') +
+          statHTML(r.rounds.scramble ? r.rounds.scramble.pct : null, 'Scrambling', '%') +
+          statHTML(r.rounds.puttsPerHole, 'Putts / hole') +
+          statHTML(r.rounds.penaltiesPerRound, 'Penalties / rd') +
+          '</div>');
+
+        if (r.rounds.trendToPar) {
+          const t = r.rounds.trendToPar;
+          const better = t.deltaStrokes < 0;
+          parts.push(`<div class="callout ${better ? 'ok' : 'warn'}">Last ${t.recentN} rounds averaged
+            <b>${t.recentAvg > 0 ? '+' : ''}${t.recentAvg}</b> to par versus <b>${t.priorAvg > 0 ? '+' : ''}${t.priorAvg}</b>
+            in the ${t.recentN} before — <b>${better ? 'improving' : 'trending up'} by ${Math.abs(t.deltaStrokes)} strokes</b>.</div>`);
+        } else if (r.rounds.played < 6) {
+          parts.push(`<div class="callout">Log at least 6 rounds with a par value before reading a trend — round-to-round scoring noise is larger than most real changes.</div>`);
+        }
+      }
+
+      // ---- practice ----
+      if (r.counts.rangeSessions) {
+        parts.push('<h2 class="section">Practice quality</h2><div class="stat-grid">' +
+          statHTML(r.practice.strikeRatePct, 'Shots on intent', '%') +
+          statHTML(r.practice.avgQuality, 'Avg quality', '/5') +
+          statHTML(r.practice.randomPracticeShare, 'Random practice', '%') +
+          '</div>');
+
+        if (r.practice.randomPracticeShare != null && r.practice.randomPracticeShare < 40 && r.counts.rangeSessions >= 3) {
+          parts.push(`<div class="callout warn">Most sessions are <b>blocked</b> practice (same shot repeatedly). That builds a
+            pattern quickly but transfers poorly to the course. Mixing in random practice — changing club and target every ball —
+            usually shows up in scoring faster.</div>`);
+        }
+
+        if (r.practice.shotsByClub) {
+          parts.push('<h2 class="section">Shots by club</h2>' + barsHTML(r.practice.shotsByClub, 'club', 'shots'));
+        }
+      }
+
+      // ---- misses ----
+      if (r.misses.inPractice || r.misses.inRounds) {
+        parts.push('<h2 class="section">Miss patterns</h2>');
+        if (r.misses.inPractice) {
+          parts.push('<div style="font-size:.78rem;color:#666;margin-bottom:6px">On the range (by shots)</div>' + barsHTML(r.misses.inPractice, 'pattern', 'weight'));
+        }
+        if (r.misses.inRounds) {
+          parts.push('<div style="font-size:.78rem;color:#666;margin:12px 0 6px">On the course (by rounds)</div>' + barsHTML(r.misses.inRounds, 'pattern', 'weight'));
+        }
+      }
+
+      // ---- adherence ----
+      if (r.adherence.byLesson) {
+        parts.push('<h2 class="section">Lesson follow-through</h2>');
+        r.adherence.byLesson.slice(0, 4).forEach(l => {
+          const done = l.practisedAreas.length, total = l.taughtAreas.length;
+          parts.push(`<div class="callout ${total && done === total ? 'ok' : 'warn'}">
+            Lesson ${esc(fmtDate(l.lessonDate))} (${l.daysSince}d ago) —
+            <b>${done}/${total || 0}</b> focus areas practised since, across ${l.rangeSessionsSince} range session${l.rangeSessionsSince === 1 ? '' : 's'}.
+            ${l.neglectedAreas.length ? `<br>Not yet practised: <b>${esc(l.neglectedAreas.join(', '))}</b>` : ''}
+          </div>`);
+        });
+      }
+
+      // ---- AI bundle ----
+      const bytes = new Blob([JSON.stringify(ctx)]).size;
+      parts.push(`<h2 class="section">AI context bundle</h2>
+        <div class="callout">Everything above, plus the raw entries and the field schema, packaged for a language model.
+          It ships precomputed rollups so the model interprets numbers rather than doing arithmetic, and declares the
+          controlled vocabularies so its recommendations come back in terms this app already stores.
+          <div class="inline-note">Window: last ${insightWindow} days · ${ctx.window.entriesIncluded} of ${ctx.window.entriesInWindow} entries · ~${(bytes / 1024).toFixed(1)} KB</div>
+        </div>
+        <div class="btn-row" style="margin-bottom:12px">
+          <button class="btn sm" id="copyPrompt">Copy prompt + data</button>
+          <button class="btn ghost sm" id="copyJson">Copy JSON</button>
+          <button class="btn ghost sm" id="downloadJson">Download</button>
+        </div>
+        <pre class="json">${esc(JSON.stringify(ctx, null, 2))}</pre>
+        <div class="inline-note">Paste into any assistant to get a practice plan today. To generate plans in-app,
+          POST this object to a server endpoint holding your API key — see <b>README.md</b>. The
+          <code>buildAIContext()</code> function is the entire integration surface.</div>`);
+
+      el.innerHTML = parts.join('');
+    }
+
+    /* =========================================================================
+     * 9. IMPORT / EXPORT / SAMPLE DATA
+     * ====================================================================== */
+
+    function download(filename, text, mime) {
+      const blob = new Blob([text], { type: mime || 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function copyText(text, okMsg) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast(okMsg);
+      } catch (err) {
+        // Clipboard API needs a secure context; fall back to a download so the
+        // data is never stranded.
+        console.warn('Clipboard unavailable, downloading instead:', err);
+        download('golf-ai-context.txt', text, 'text/plain');
+        toast('Clipboard blocked — downloaded instead');
+      }
+    }
+
+    function importJSON(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          const incoming = Array.isArray(data) ? { entries: data } : data;
+          if (!Array.isArray(incoming.entries)) throw new Error('No `entries` array found');
+
+          const existing = new Set(STORE.entries.map(e => e.id));
+          let added = 0;
+          incoming.entries.forEach(e => {
+            if (!e || !TYPES[e.type] || !e.date) return;
+            if (e.id && existing.has(e.id)) return;
+            e.id = e.id || newId();
+            STORE.entries.push(e);
+            existing.add(e.id);
+            added++;
+          });
+          if (incoming.profile) STORE.profile = Object.assign(STORE.profile, incoming.profile);
+          migrate(STORE);
+          saveStore();
+          renderAll();
+          toast(`Imported ${added} entr${added === 1 ? 'y' : 'ies'}`);
+        } catch (err) {
+          console.error(err);
+          toast('Could not read that file: ' + err.message);
+        }
+      };
+      reader.onerror = () => toast('Could not read that file');
+      reader.readAsText(file);
+    }
+
+    function newId() {
+      return 'e_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    }
+
+    function sampleData() {
+      const d = n => {
+        const x = new Date();
+        x.setDate(x.getDate() - n);
+        return x.toISOString().slice(0, 10);
+      };
+      return [
+        {
+          type: 'lesson', date: d(34), durationMin: 60, coach: 'Dana Whitfield',
+          focus: ['Impact', 'Iron play', 'Transition'],
+          feels: 'Feel the handle moving left through impact; pressure into lead heel earlier.',
+          drills: [
+            { name: 'Towel under trail arm', dose: '3x10', club: '7 Iron' },
+            { name: 'Step-through drill', dose: '2x15', club: '8 Iron' }
+          ],
+          takeaway: 'Early extension is costing me strike quality with mid irons.',
+          understanding: 4,
+          notes: 'Filmed down the line. Hips move toward the ball in transition.'
+        },
+        {
+          type: 'range', date: d(31), durationMin: 75, location: 'Harding Park range',
+          practiceType: 'Blocked', focus: ['Impact', 'Iron play'],
+          blocks: [
+            { club: '8 Iron', intent: 'Warm-up', shots: 20, good: 11, miss: 'Thin', carryYds: 148 },
+            { club: '7 Iron', intent: 'Technique', shots: 60, good: 34, miss: 'Thin', carryYds: 160 }
+          ],
+          quality: 3, fatigue: 3,
+          notes: 'Step-through drill helps but it falls apart at full speed.'
+        },
+        {
+          type: 'range', date: d(24), durationMin: 60, location: 'Harding Park range',
+          practiceType: 'Blocked', focus: ['Impact', 'Iron play'],
+          blocks: [
+            { club: '7 Iron', intent: 'Technique', shots: 70, good: 48, miss: 'Pull', carryYds: 162 },
+            { club: 'Driver', intent: 'Calibration', shots: 25, good: 11, miss: 'Slice', carryYds: 243 }
+          ],
+          quality: 4, fatigue: 2,
+          notes: 'Irons much better. Driver is a different swing entirely.'
+        },
+        {
+          type: 'round', date: d(21), durationMin: 250, course: 'Harding Park', holesPlayed: '18',
+          coursePar: 72, score: 89, putts: 34, threePutts: 3, fairwaysHit: 4, fairwayAttempts: 14,
+          gir: 5, upDowns: 3, upDownAttempts: 13, penalties: 3, dominantMiss: 'Slice',
+          conditions: ['Windy'], mental: 3, focus: ['Driving'],
+          notes: 'Three tee shots out of bounds right. Irons felt fine when I was in play.'
+        },
+        {
+          type: 'range', date: d(16), durationMin: 55, location: 'Harding Park range',
+          practiceType: 'Blocked', focus: ['Iron play'],
+          blocks: [{ club: '7 Iron', intent: 'Technique', shots: 80, good: 58, miss: 'Pull', carryYds: 163 }],
+          quality: 4, fatigue: 2,
+          notes: 'Strike is genuinely better than a month ago.'
+        },
+        {
+          type: 'round', date: d(12), durationMin: 240, course: 'Lincoln Park', holesPlayed: '18',
+          coursePar: 68, score: 84, putts: 33, threePutts: 2, fairwaysHit: 5, fairwayAttempts: 13,
+          gir: 6, upDowns: 4, upDownAttempts: 12, penalties: 2, dominantMiss: 'Slice',
+          conditions: ['Calm'], mental: 3, focus: ['Driving'],
+          notes: 'Same story. Driver right, everything else acceptable.'
+        },
+        {
+          type: 'round', date: d(5), durationMin: 245, course: 'Harding Park', holesPlayed: '18',
+          coursePar: 72, score: 91, putts: 36, threePutts: 4, fairwaysHit: 3, fairwayAttempts: 14,
+          gir: 4, upDowns: 2, upDownAttempts: 14, penalties: 4, dominantMiss: 'Slice',
+          conditions: ['Windy', 'Wet'], mental: 2, focus: ['Driving', 'Mental game'],
+          notes: 'Lost the tee shot completely. Got frustrated after the turn.'
+        }
+      ].map(e => Object.assign({ id: newId(), createdAt: new Date().toISOString() }, e));
+    }
+
+    /* =========================================================================
+     * 10. WIRING
+     * ====================================================================== */
+
+    function renderTypePicker() {
+      document.getElementById('typePicker').innerHTML = Object.keys(TYPES).map(t =>
+        `<button type="button" class="type-btn${activeType === t ? ' active' : ''}" data-type="${t}">
+          <span class="emoji">${TYPES[t].emoji}</span>${esc(TYPES[t].label)}
+        </button>`
+      ).join('');
+    }
+
+    function renderAll() {
+      renderTypePicker();
+      renderForm();
+      renderHistory();
+      renderInsights();
+    }
+
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById('tabs').addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
+      if (tab) showView(tab.dataset.view);
+    });
+
+    document.getElementById('typePicker').addEventListener('click', e => {
+      const btn = e.target.closest('.type-btn');
+      if (!btn || btn.dataset.type === activeType) return;
+      activeType = btn.dataset.type;
+      editingId = null;
+      renderTypePicker();
+      renderForm();
+    });
+
+    // One delegated handler for every interactive control inside the form.
+    document.getElementById('entryForm').addEventListener('click', e => {
+      const chip = e.target.closest('.chip');
+      if (chip && chip.parentElement.classList.contains('chips')) {
+        chip.classList.toggle('on');
+        return;
+      }
+      const dot = e.target.closest('.rating .dot');
+      if (dot) {
+        const wrap = dot.parentElement;
+        const val = dot.dataset.val;
+        // Clicking the active value clears it — ratings are optional.
+        const next = wrap.dataset.value === val ? '' : val;
+        wrap.dataset.value = next;
+        [...wrap.children].forEach(c => c.classList.toggle('on', c.dataset.val === next));
+        return;
+      }
+      const add = e.target.closest('[data-add-row]');
+      if (add) {
+        const key = add.dataset.addRow;
+        const spec = typeFields(activeType).find(f => f.key === key);
+        const container = document.querySelector(`[data-rows="${key}"]`);
+        container.insertAdjacentHTML('beforeend', rowItemHTML(spec, {}));
+        return;
+      }
+      const del = e.target.closest('.row-del');
+      if (del) {
+        const container = del.closest('.rows');
+        if (container.querySelectorAll('.row-item').length > 1) del.closest('.row-item').remove();
+        else del.closest('.row-item').querySelectorAll('input,select').forEach(i => { i.value = ''; });
+        return;
+      }
+      if (e.target.id === 'cancelEdit') {
+        editingId = null;
+        renderForm();
+      }
+    });
+
+    document.getElementById('entryForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const entry = readForm();
+      const errs = validate(entry);
+      if (errs.length) { toast(errs[0]); return; }
+
+      const now = new Date().toISOString();
+      if (editingId) {
+        const idx = STORE.entries.findIndex(x => x.id === editingId);
+        STORE.entries[idx] = Object.assign({}, STORE.entries[idx], entry, { updatedAt: now });
+        editingId = null;
+        toast('Entry updated');
+      } else {
+        STORE.entries.push(Object.assign({ id: newId(), createdAt: now }, entry));
+        toast(TYPES[entry.type].label + ' logged');
+      }
+      saveStore();
+      renderAll();
+      showView('history');
+    });
+
+    document.getElementById('view-history').addEventListener('click', e => {
+      const filter = e.target.closest('[data-filter]');
+      if (filter) { historyFilter = filter.dataset.filter; renderHistory(); return; }
+
+      const edit = e.target.closest('[data-edit]');
+      if (edit) {
+        const entry = STORE.entries.find(x => x.id === edit.dataset.edit);
+        if (!entry) return;
+        editingId = entry.id;
+        activeType = entry.type;
+        renderTypePicker();
+        renderForm();
+        showView('log');
+        return;
+      }
+
+      const del = e.target.closest('[data-del]');
+      if (del) {
+        const entry = STORE.entries.find(x => x.id === del.dataset.del);
+        if (!entry) return;
+        if (!confirm(`Delete this ${TYPES[entry.type].label.toLowerCase()} entry from ${entry.date}? This cannot be undone.`)) return;
+        STORE.entries = STORE.entries.filter(x => x.id !== entry.id);
+        if (editingId === entry.id) editingId = null;
+        saveStore();
+        renderAll();
+        toast('Entry deleted');
+        return;
+      }
+
+      if (e.target.closest('[data-sample]')) loadSample();
+    });
+
+    function loadSample() {
+      STORE.entries = STORE.entries.concat(sampleData());
+      saveStore();
+      renderAll();
+      toast('Sample data loaded');
+    }
+
+    document.getElementById('view-insights').addEventListener('click', e => {
+      const w = e.target.closest('[data-window]');
+      if (w) { insightWindow = Number(w.dataset.window); renderInsights(); return; }
+      if (e.target.closest('[data-sample]')) { loadSample(); return; }
+      if (e.target.id === 'copyJson') {
+        copyText(JSON.stringify(buildAIContext({ windowDays: insightWindow }), null, 2), 'Context JSON copied');
+        return;
+      }
+      if (e.target.id === 'copyPrompt') {
+        copyText(buildPrompt(buildAIContext({ windowDays: insightWindow })), 'Prompt + data copied — paste into any assistant');
+        return;
+      }
+      if (e.target.id === 'downloadJson') {
+        download('golf-ai-context-' + todayISO() + '.json', JSON.stringify(buildAIContext({ windowDays: insightWindow }), null, 2));
+        toast('Downloaded');
+      }
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      download('golf-practice-log-' + todayISO() + '.json', JSON.stringify(STORE, null, 2));
+      toast('Exported');
+    });
+    document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+    document.getElementById('importFile').addEventListener('change', e => {
+      if (e.target.files[0]) importJSON(e.target.files[0]);
+      e.target.value = '';
+    });
+
+    // Expose the AI seam for console use and for any future in-app call.
+    window.golfLog = {
+      buildAIContext, buildPrompt, computeRollups, describeSchema,
+      RECOMMENDATION_OUTPUT_SCHEMA, PROMPT_INSTRUCTIONS,
+      get store() { return STORE; }
+    };
+
+    renderAll();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
