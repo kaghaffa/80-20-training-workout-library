@@ -290,7 +290,7 @@
       border-radius: 10px;
       padding: 16px;
       transition: background .15s, border-color .15s;
-      cursor: default
+      cursor: pointer
     }
 
     .card:hover {
@@ -497,6 +497,165 @@
       color: #e04d4d
     }
 
+    .recent {
+      margin-bottom: 16px
+    }
+
+    .recent-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px
+    }
+
+    .recent-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text-dim)
+    }
+
+    .recent-clear {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: .75rem;
+      cursor: pointer;
+      padding: 2px 4px
+    }
+
+    .recent-clear:hover {
+      color: var(--orange)
+    }
+
+    .recent-when {
+      color: var(--text-dim);
+      font-size: .75rem;
+      margin-bottom: 6px
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 8px
+    }
+
+    .recent-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+      font: inherit;
+      width: 100%
+    }
+
+    .recent-row:hover {
+      background: var(--card-hover);
+      border-color: #444
+    }
+
+    .recent-row .code {
+      font-size: .95rem;
+      min-width: 52px
+    }
+
+    .recent-row .category {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .recent-row .ago {
+      color: var(--text-dim);
+      font-size: .75rem;
+      white-space: nowrap
+    }
+
+    .detail {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px
+    }
+
+    body.viewing .header,
+    body.viewing .container {
+      display: none
+    }
+
+    body.viewing .detail {
+      display: block
+    }
+
+    .detail-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px
+    }
+
+    .back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: .9rem;
+      cursor: pointer
+    }
+
+    .back-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange)
+    }
+
+    .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px
+    }
+
+    .detail-card .card-top {
+      margin-bottom: 4px
+    }
+
+    .detail-card .code {
+      font-size: 2rem
+    }
+
+    .detail-duration {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 12px 0
+    }
+
+    .detail-card .description {
+      font-size: 1.05rem;
+      line-height: 1.7
+    }
+
+    .detail-card .timeline {
+      height: 28px;
+      margin-top: 16px
+    }
+
+    .detail .share-btn {
+      margin-left: 0;
+      padding: 8px 14px;
+      font-size: .85rem
+    }
+
     @media(max-width:600px) {
       .header {
         padding: 14px 12px
@@ -542,7 +701,7 @@
     <p>Search by workout code, sport, or category</p>
     <div class="search-wrap">
       <span class="search-icon">&#128269;</span>
-      <input type="text" id="search" placeholder="Type a workout code (e.g. RRe9, CF5, SCI3)..." autofocus>
+      <input type="text" id="search" placeholder="Type a workout code (e.g. RRe9, CF5, SCI3)..." enterkeyhint="go" autofocus>
     </div>
     <div class="sport-tabs" id="sportTabs">
       <button class="sport-tab active" data-sport="All">All</button>
@@ -565,9 +724,11 @@
     <div class="stats" id="stats"></div>
   </div>
   <div class="container">
+    <div class="recent" id="recent"></div>
     <div class="category-browser" id="categoryBrowser"></div>
     <div class="results" id="results"></div>
   </div>
+  <div class="detail" id="detail"></div>
   <div class="share-hint" id="shareHint">Link copied to clipboard!</div>
   <script>
     const W = [
@@ -1213,7 +1374,7 @@
     }
 
     function renderCard(w) {
-      return `<div class="card">
+      return `<div class="card" onclick="openWorkout('${w[0]}')">
 <div class="card-top">
 <span class="code">${w[0]}</span>
 ${sportBadge(w[4])}
@@ -1229,8 +1390,8 @@ ${renderTimeline(w[2])}
     function shareWorkout(code, btn, e) {
       e.stopPropagation();
       const url = new URL(window.location);
-      url.searchParams.set('q', code);
-      url.searchParams.delete('sport');
+      url.search = '';
+      url.searchParams.set('w', code);
       const link = url.toString();
       navigator.clipboard.writeText(link).then(() => {
         btn.textContent = 'Copied!';
@@ -1245,7 +1406,106 @@ ${renderTimeline(w[2])}
     const resultsEl = document.getElementById('results');
     const statsEl = document.getElementById('stats');
     const catBrowserEl = document.getElementById('categoryBrowser');
+    const recentEl = document.getElementById('recent');
+    const detailEl = document.getElementById('detail');
+    const byCode = {};
+    W.forEach(w => byCode[w[0].toLowerCase()] = w);
     let activeSport = 'All';
+
+    // Recently viewed workouts, newest first, kept in localStorage
+    const RECENT_KEY = '8020-recent';
+    const RECENT_MAX = 10;
+
+    function getRecent() {
+      try {
+        const list = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+        return list.filter(r => r && byCode[String(r.code).toLowerCase()]);
+      } catch (e) { return []; }
+    }
+
+    function addRecent(code) {
+      const list = getRecent().filter(r => r.code !== code);
+      list.unshift({ code, t: Date.now() });
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX))); } catch (e) { }
+    }
+
+    function clearRecent() {
+      try { localStorage.removeItem(RECENT_KEY); } catch (e) { }
+      update();
+    }
+
+    function timeAgo(t) {
+      const mins = Math.floor((Date.now() - t) / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const then = new Date(t), now = new Date();
+      const days = Math.round((new Date(now.toDateString()) - new Date(then.toDateString())) / 86400000);
+      const clock = then.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (days === 0) return 'today ' + clock;
+      if (days === 1) return 'yesterday ' + clock;
+      if (days < 7) return days + ' days ago';
+      return then.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
+    function renderRecent() {
+      let list = getRecent().map(r => ({ w: byCode[r.code.toLowerCase()], t: r.t }));
+      if (activeSport !== 'All') list = list.filter(r => r.w[4] === activeSport);
+      if (list.length === 0) { recentEl.innerHTML = ''; return; }
+      const [latest, ...rest] = list;
+      recentEl.innerHTML = `<div class="recent-head"><span class="recent-title">Recently viewed</span><button class="recent-clear" onclick="clearRecent()">Clear</button></div>
+<div class="recent-when">Viewed ${timeAgo(latest.t)}</div>
+${renderCard(latest.w)}
+${rest.length ? `<div class="recent-list">${rest.map(r => `<button class="recent-row" onclick="openWorkout('${r.w[0]}')"><span class="code">${r.w[0]}</span>${sportBadge(r.w[4])}<span class="category">${r.w[3]}</span><span class="ago">${timeAgo(r.t)}</span></button>`).join('')}</div>` : ''}`;
+    }
+
+    // Workout view
+    function renderDetail(w) {
+      detailEl.innerHTML = `<div class="detail-bar">
+<button class="back-btn" onclick="closeWorkout()">&#8592; Back</button>
+<button class="share-btn" onclick="shareWorkout('${w[0]}',this,event)">&#128279; Share</button>
+</div>
+<div class="detail-card">
+<div class="card-top">
+<span class="code">${w[0]}</span>
+${sportBadge(w[4])}
+<span class="category">${w[3]}</span>
+</div>
+<div class="detail-duration">${formatDuration(w[1], w[4])}</div>
+<div class="description">${colorZones(w[2])}</div>
+${renderTimeline(w[2])}
+</div>`;
+    }
+
+    function showView() {
+      const code = new URLSearchParams(window.location.search).get('w');
+      const w = code && byCode[code.toLowerCase()];
+      if (w) {
+        addRecent(w[0]);
+        renderDetail(w);
+        document.body.classList.add('viewing');
+        document.title = w[0] + ' · 80/20 Workout Library';
+        window.scrollTo(0, 0);
+      } else {
+        document.body.classList.remove('viewing');
+        document.title = '80/20 Workout Library';
+        update();
+      }
+    }
+
+    function openWorkout(code) {
+      history.pushState({ fromList: true }, '', '?w=' + encodeURIComponent(code));
+      showView();
+    }
+
+    function closeWorkout() {
+      // Opened from the list: go back so the search and scroll position are restored.
+      // Opened from a shared link: there's no list behind it, so show the home screen.
+      if (history.state && history.state.fromList) { history.back(); return; }
+      history.replaceState(null, '', window.location.pathname);
+      showView();
+    }
+
+    window.addEventListener('popstate', () => { loadFromURL(); showView(); });
 
     // Sport tab switching
     document.getElementById('sportTabs').addEventListener('click', e => {
@@ -1318,6 +1578,7 @@ ${renderTimeline(w[2])}
       if (q) {
         // Search mode: show flat results
         catBrowserEl.innerHTML = '';
+        recentEl.innerHTML = '';
         if (filtered.length === 0) {
           resultsEl.innerHTML = '<div class="empty"><div class="big">No matches</div><div>Try a different search term</div></div>';
         } else {
@@ -1326,6 +1587,7 @@ ${renderTimeline(w[2])}
       } else {
         // Browse mode: show category groups
         resultsEl.innerHTML = '';
+        renderRecent();
         renderCategoryBrowser(filtered);
       }
     }
@@ -1363,12 +1625,25 @@ ${renderTimeline(w[2])}
 
     searchEl.addEventListener('input', () => { update(); syncURL(); });
 
+    // Enter/Go opens the exact code match, or the only result
+    searchEl.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const q = searchEl.value.trim().toLowerCase();
+      if (!q) return;
+      let w = byCode[q];
+      if (!w) {
+        const matches = W.filter(x => (activeSport === 'All' || x[4] === activeSport) && x[0].toLowerCase().startsWith(q));
+        if (matches.length === 1) w = matches[0];
+      }
+      if (w) { searchEl.blur(); openWorkout(w[0]); }
+    });
+
     // Also sync URL on sport tab click
     const origTabHandler = document.getElementById('sportTabs');
     origTabHandler.addEventListener('click', () => setTimeout(syncURL, 0));
 
     loadFromURL();
-    update();
+    showView();
   </script>
 </body>
 
