@@ -645,9 +645,299 @@
       line-height: 1.7
     }
 
-    .detail-card .timeline {
-      height: 28px;
-      margin-top: 16px
+    .timeline.big {
+      height: 36px;
+      margin-top: 16px;
+      border-radius: 6px
+    }
+
+    .timeline.big .timeline-seg {
+      cursor: pointer
+    }
+
+    .timeline.big.has-sel .timeline-seg:not(.sel) {
+      opacity: .25
+    }
+
+    .ticks {
+      position: relative;
+      height: 18px;
+      margin-top: 4px
+    }
+
+    .tick {
+      position: absolute;
+      top: 0;
+      font-size: .7rem;
+      color: var(--text-dim);
+      transform: translateX(-50%);
+      white-space: nowrap
+    }
+
+    .tick[style="left:0%"] {
+      transform: none
+    }
+
+    .tick.end {
+      transform: translateX(-100%)
+    }
+
+    .tl-caption {
+      font-size: .8rem;
+      color: var(--text-dim);
+      margin-top: 6px;
+      min-height: 1.2em
+    }
+
+    .detail-section {
+      margin-top: 20px
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px
+    }
+
+    .section-title {
+      display: block;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text-dim);
+      margin-bottom: 8px
+    }
+
+    .section-head .section-title {
+      margin-bottom: 0
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--orange);
+      font-size: .85rem;
+      cursor: pointer;
+      padding: 4px 0
+    }
+
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      padding: 12px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s
+    }
+
+    .step.sel {
+      border-color: var(--orange);
+      background: rgba(232, 127, 42, .08)
+    }
+
+    .step-num {
+      color: var(--text-dim);
+      font-size: .8rem;
+      font-weight: 700;
+      min-width: 14px
+    }
+
+    .step-amt {
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-width: 72px
+    }
+
+    .step-zone {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600
+    }
+
+    .zdot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: none
+    }
+
+    .step-target {
+      color: var(--text);
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: .85rem
+    }
+
+    .step-note {
+      color: var(--text-dim);
+      font-size: .85rem
+    }
+
+    .repeat {
+      border: 1px dashed #555;
+      border-radius: 12px;
+      padding: 10px
+    }
+
+    .repeat-head {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      padding: 2px 4px 10px
+    }
+
+    .repeat-x {
+      font-weight: 700;
+      color: var(--orange)
+    }
+
+    .repeat-sum {
+      color: var(--text-dim);
+      font-size: .8rem
+    }
+
+    .zsum {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px
+    }
+
+    .zsum-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 96px;
+      align-items: center;
+      gap: 12px
+    }
+
+    .zsum-label {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      font-size: .9rem
+    }
+
+    .zsum-label .step-target {
+      font-size: .75rem
+    }
+
+    .zsum-bar {
+      height: 8px;
+      background: #1a1a1a;
+      border-radius: 4px;
+      overflow: hidden
+    }
+
+    .zsum-bar div {
+      height: 100%
+    }
+
+    .zsum-amt {
+      font-size: .85rem;
+      font-weight: 600;
+      text-align: right;
+      white-space: nowrap
+    }
+
+    .zsum-amt span {
+      color: var(--text-dim);
+      font-weight: 400
+    }
+
+    .zone-editor {
+      background: var(--card);
+      border: 1px solid var(--orange);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .zone-editor-title {
+      font-weight: 700
+    }
+
+    .zone-editor-hint {
+      color: var(--text-dim);
+      font-size: .8rem;
+      line-height: 1.4
+    }
+
+    .zone-editor-hint a {
+      color: var(--orange)
+    }
+
+    .zone-input {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .zone-input span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: 70px;
+      flex: none;
+      font-size: .9rem;
+      font-weight: 600
+    }
+
+    .zone-input input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 1rem
+    }
+
+    .zone-input input:focus {
+      outline: none;
+      border-color: var(--orange)
+    }
+
+    .zone-editor-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px
+    }
+
+    .save-btn {
+      background: var(--orange);
+      border: none;
+      color: #111;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: .9rem;
+      cursor: pointer
     }
 
     .detail .share-btn {
@@ -1267,110 +1557,84 @@
       return `<span class="badge ${c}">${s}</span>`;
     }
 
-    // Parse workout description into [{value, zone}] segments
-    function parseSegments(desc) {
-      const segs = [];
-      // Normalize: remove newlines, extra spaces
-      let d = desc.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-      // Remove non-zone text like "uphill or simulated", "(25 Meter Pool Workout)", "at race pace"
-      d = d.replace(/uphill\s*(or\s*simulated)?/gi, '');
-      d = d.replace(/\(25\s*(Meter|Yard)\s*Pool\s*Workout\)/gi, '');
-      d = d.replace(/simulated/gi, '');
-
-      // Tokenize: split into parts handling "N x (...)" repeats
-      const tokens = [];
-      let i = 0;
-      while (i < d.length) {
-        // Match repeat pattern: N x (stuff)
-        const repMatch = d.slice(i).match(/^(\d+)\s*x\s*\(([^)]+)\)/i);
-        if (repMatch) {
-          const reps = parseInt(repMatch[1]);
-          const inner = repMatch[2];
-          // Parse inner segments separated by /
-          const parts = inner.split('/');
-          for (let r = 0; r < reps; r++) {
-            parts.forEach(p => parseSimpleSeg(p.trim(), segs));
-          }
-          i += repMatch[0].length;
-          // Skip comma/space after
-          while (i < d.length && (d[i] === ',' || d[i] === ' ' || d[i] === ')')) i++;
-          continue;
-        }
-        // Match simple segment: number + optional unit + Zone N
-        const segMatch = d.slice(i).match(/^(\d+\.?\d*)\s*(minutes?|mins?|mi(?:les?)?|seconds?|"|\s)*(?:in\s+)?Zone\s*(\d)/i);
-        if (segMatch) {
-          const val = parseFloat(segMatch[1]);
-          const zone = parseInt(segMatch[3]);
-          const unit = segMatch[2] ? segMatch[2].trim() : '';
-          // Convert seconds to minutes for display
-          let adjVal = val;
-          if (unit.match(/second/i) || unit === '"') adjVal = val / 60;
-          segs.push({ value: adjVal, zone });
-          i += segMatch[0].length;
-          while (i < d.length && (d[i] === ',' || d[i] === ' ')) i++;
-          continue;
-        }
-        // Match "at race pace" segments like "16 miles at race pace"
-        const raceMatch = d.slice(i).match(/^(\d+\.?\d*)\s*(miles?|mi)\s+at\s+race\s+pace/i);
-        if (raceMatch) {
-          segs.push({ value: parseFloat(raceMatch[1]), zone: 3 });
-          i += raceMatch[0].length;
-          while (i < d.length && (d[i] === ',' || d[i] === ' ')) i++;
-          continue;
-        }
-        // Match "rest" segments
-        const restMatch = d.slice(i).match(/^(\d+\.?\d*)\s*(minutes?|seconds?|")\s*rest/i);
-        if (restMatch) {
-          const val = parseFloat(restMatch[1]);
-          const unit = restMatch[2];
-          let adjVal = val;
-          if (unit.match(/second/i) || unit === '"') adjVal = val / 60;
-          segs.push({ value: adjVal, zone: 0 });
-          i += restMatch[0].length;
-          while (i < d.length && (d[i] === ',' || d[i] === ' ')) i++;
-          continue;
-        }
-        i++;
+    // Parse a description into structured steps:
+    // [{ amount, unit: 'min'|'mi'|'yds', zone: 1-5 | 0 (rest) | 'race', note }]
+    // repeats are { reps, steps: [...] }
+    function parseSteps(desc, sport) {
+      const d = desc.replace(/\s+/g, ' ')
+        .replace(/\)\s*/g, '),')
+        .replace(/\s*(\d+\s*x\s*\()/gi, ',$1');
+      const items = [];
+      let depth = 0, cur = '';
+      for (const ch of d) {
+        if (ch === '(') depth++;
+        if (ch === ')') depth--;
+        if (ch === ',' && depth === 0) { items.push(cur); cur = ''; } else cur += ch;
       }
+      items.push(cur);
+      const out = [];
+      for (const raw of items.map(s => s.trim()).filter(Boolean)) {
+        const rep = raw.match(/^(\d+)\s*x\s*\((.*)\)$/i);
+        if (rep) {
+          const steps = rep[2].split(/[\/,]/).map(s => parseStep(s.trim(), sport)).filter(Boolean);
+          if (steps.length) out.push({ reps: parseInt(rep[1]), steps });
+        } else {
+          const st = parseStep(raw, sport);
+          if (st) out.push(st);
+        }
+      }
+      return out;
+    }
+
+    function parseStep(s, sport) {
+      const m = s.match(/^(\d+(?:\.\d+)?)\s*(minutes?|seconds?|"|miles?)?\s*(?:in\s+)?(?:Zone\s*(\d)|(rest)|(at race pace))\s*(.*)$/i);
+      if (!m) return null;
+      let amount = parseFloat(m[1]), unit;
+      const u = (m[2] || '').toLowerCase();
+      if (u.startsWith('second') || u === '"') { amount = amount / 60; unit = 'min'; }
+      else if (u.startsWith('minute')) unit = 'min';
+      else if (u.startsWith('mile')) unit = 'mi';
+      else unit = sport === 'Swim' ? 'yds' : 'min';
+      const zone = m[3] ? parseInt(m[3]) : m[4] ? 0 : 'race';
+      return { amount, unit, zone, note: m[6].trim() };
+    }
+
+    // Flatten steps into timeline segments, each tagged with the step it belongs to
+    function flattenSteps(steps) {
+      const segs = [];
+      steps.forEach((st, i) => {
+        if (st.reps) {
+          for (let r = 0; r < st.reps; r++) st.steps.forEach((x, j) => segs.push({ ...x, key: i + '.' + j, rep: r + 1, reps: st.reps }));
+        } else segs.push({ ...st, key: String(i) });
+      });
       return segs;
     }
 
-    function parseSimpleSeg(s, segs) {
-      // "1 minute Zone 5 uphill" or "2 minutes Zone 1" or "100 Zone 3" or "50 Zone 1"
-      const m = s.match(/(\d+\.?\d*)\s*(minutes?|mins?|seconds?|"|\s)*(?:in\s+)?Zone\s*(\d)/i);
-      if (m) {
-        const val = parseFloat(m[1]);
-        const zone = parseInt(m[3]);
-        const unit = m[2] ? m[2].trim() : '';
-        let adjVal = val;
-        if (unit.match(/second/i) || unit === '"') adjVal = val / 60;
-        segs.push({ value: adjVal, zone });
-      }
-      // Check for rest
-      const r = s.match(/(\d+\.?\d*)\s*(minutes?|seconds?|")\s*rest/i);
-      if (r && !m) {
-        const val = parseFloat(r[1]);
-        const unit = r[2];
-        let adjVal = val;
-        if (unit.match(/second/i) || unit === '"') adjVal = val / 60;
-        segs.push({ value: adjVal, zone: 0 });
-      }
+    function fmtAmount(amount, unit) {
+      if (unit === 'mi') return amount + ' mi';
+      if (unit === 'yds') return amount + ' yds';
+      if (amount < 1) return Math.round(amount * 60) + ' sec';
+      if (amount >= 60) { const h = Math.floor(amount / 60), m = Math.round(amount % 60); return m ? h + 'h ' + m + 'min' : h + 'h'; }
+      return +amount.toFixed(1) + ' min';
     }
 
-    function renderTimeline(desc) {
-      const segs = parseSegments(desc);
+    function zoneLabel(z) { return z === 0 ? 'Rest' : z === 'race' ? 'Race pace' : 'Zone ' + z; }
+    function zoneClass(z) { return z === 'race' ? 'tz3' : 'tz' + z; }
+
+    // Swim rests are timed while swim steps are distances, so rests get a fixed sliver instead of a share
+    function segFlex(seg, mainUnit) {
+      return seg.unit === mainUnit ? `flex:${seg.amount} 0 0` : 'flex:0 0 3px';
+    }
+
+    function mainUnit(segs) {
+      return segs.some(x => x.unit === 'yds') ? 'yds' : segs.some(x => x.unit === 'mi') ? 'mi' : 'min';
+    }
+
+    function renderTimeline(desc, sport) {
+      const segs = flattenSteps(parseSteps(desc, sport));
       if (segs.length === 0) return '';
-      const total = segs.reduce((s, x) => s + x.value, 0);
-      if (total === 0) return '';
-      const bars = segs.map(s => {
-        const pct = (s.value / total * 100);
-        const minPct = Math.max(pct, 0.5);
-        const zClass = s.zone >= 1 && s.zone <= 5 ? 'tz' + s.zone : 'tz0';
-        const label = s.zone ? 'Zone ' + s.zone : 'Rest';
-        const durLabel = s.value >= 1 ? Math.round(s.value) + '' : '<1';
-        return `<div class="timeline-seg ${zClass}" style="width:${minPct}%" data-tooltip="${label} (${durLabel})"></div>`;
-      }).join('');
-      return `<div class="timeline">${bars}</div>`;
+      const unit = mainUnit(segs);
+      return `<div class="timeline">${segs.map(x => `<div class="timeline-seg ${zoneClass(x.zone)}" style="${segFlex(x, unit)}" data-tooltip="${zoneLabel(x.zone)} (${fmtAmount(x.amount, x.unit)})"></div>`).join('')}</div>`;
     }
 
     function renderCard(w) {
@@ -1383,7 +1647,7 @@ ${sportBadge(w[4])}
 <span class="duration">${formatDuration(w[1], w[4])}</span>
 </div>
 <div class="description">${colorZones(w[2])}</div>
-${renderTimeline(w[2])}
+${renderTimeline(w[2], w[4])}
 </div>`;
     }
 
@@ -1458,8 +1722,159 @@ ${renderCard(latest.w)}
 ${rest.length ? `<div class="recent-list">${rest.map(r => `<button class="recent-row" onclick="openWorkout('${r.w[0]}')"><span class="code">${r.w[0]}</span>${sportBadge(r.w[4])}<span class="category">${r.w[3]}</span><span class="ago">${timeAgo(r.t)}</span></button>`).join('')}</div>` : ''}`;
     }
 
+    // Your own zone ranges per sport, entered once and shown on every step
+    const ZONES_KEY = '8020-zones';
+    const ZONE_HINTS = { Run: 'e.g. 142–150 bpm', Bike: 'e.g. 150–190 W', Swim: 'e.g. 1:55–2:05/100' };
+    let detailCode = null;
+    let editingZones = false;
+
+    function getZones(sport) {
+      try { return (JSON.parse(localStorage.getItem(ZONES_KEY)) || {})[sport] || {}; } catch (e) { return {}; }
+    }
+
+    function saveZones(sport, zones) {
+      try {
+        const all = JSON.parse(localStorage.getItem(ZONES_KEY)) || {};
+        all[sport] = zones;
+        localStorage.setItem(ZONES_KEY, JSON.stringify(all));
+      } catch (e) { }
+    }
+
+    function esc(t) {
+      return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function zoneTag(z, zones) {
+      const target = typeof z === 'number' && zones[z] ? `<span class="step-target">${esc(zones[z])}</span>` : '';
+      return `<span class="step-zone"><i class="zdot ${zoneClass(z)}"></i>${zoneLabel(z)}</span>${target}`;
+    }
+
+    function stepRow(st, key, num, zones) {
+      return `<li class="step" data-key="${key}"><span class="step-num">${num}</span><span class="step-amt">${fmtAmount(st.amount, st.unit)}</span>${zoneTag(st.zone, zones)}${st.note ? `<span class="step-note">${esc(st.note)}</span>` : ''}</li>`;
+    }
+
+    function renderSteps(steps, zones) {
+      return `<ol class="steps">${steps.map((st, i) => {
+        if (!st.reps) return stepRow(st, i, i + 1, zones);
+        const unit = mainUnit(st.steps);
+        const per = st.steps.filter(x => x.unit === unit).reduce((a, x) => a + x.amount, 0);
+        return `<li class="repeat"><div class="repeat-head"><span class="step-num">${i + 1}</span><span class="repeat-x">Repeat ${st.reps}×</span><span class="repeat-sum">${fmtAmount(per, unit)} each · ${fmtAmount(per * st.reps, unit)} total</span></div>
+<ol class="steps">${st.steps.map((x, j) => stepRow(x, i + '.' + j, String.fromCharCode(97 + j), zones)).join('')}</ol></li>`;
+      }).join('')}</ol>`;
+    }
+
+    function niceTick(total, unit) {
+      const opts = unit === 'yds' ? [100, 250, 500, 1000] : unit === 'mi' ? [1, 2, 5, 10] : [5, 10, 15, 20, 30, 60];
+      return opts.find(o => total / o <= 6) || opts[opts.length - 1];
+    }
+
+    function tickLabel(v, unit) {
+      if (unit === 'yds') return v;
+      if (unit === 'mi') return v + ' mi';
+      if (v === 0) return '0';
+      const h = Math.floor(v / 60), m = v % 60;
+      return h ? (m ? `${h}h${m}` : `${h}h`) : `${m}m`;
+    }
+
+    function renderBigTimeline(segs) {
+      const unit = mainUnit(segs);
+      const total = segs.filter(x => x.unit === unit).reduce((a, x) => a + x.amount, 0);
+      const bars = segs.map(x => `<div class="timeline-seg ${zoneClass(x.zone)}" style="${segFlex(x, unit)}" data-key="${x.key}"${x.reps ? ` data-rep="${x.rep}"` : ''}></div>`).join('');
+      const step = niceTick(total, unit);
+      const ticks = [];
+      for (let v = 0; v <= total + 1e-9; v += step) {
+        const pct = v / total * 100;
+        const cls = pct > 92 ? ' end' : '';
+        if (pct > 92 && pct < 100) continue;
+        ticks.push(`<span class="tick${cls}" style="left:${pct}%">${tickLabel(v, unit)}</span>`);
+      }
+      return `<div class="timeline big">${bars}</div><div class="ticks">${ticks.join('')}</div>`;
+    }
+
+    function renderZoneSummary(segs, zones) {
+      const unit = mainUnit(segs);
+      const totals = {};
+      let restMin = 0;
+      segs.forEach(x => {
+        if (x.unit !== unit) { restMin += x.amount; return; }
+        totals[x.zone] = (totals[x.zone] || 0) + x.amount;
+      });
+      const total = Object.values(totals).reduce((a, b) => a + b, 0);
+      const order = [1, 2, 3, 'race', 4, 5, 0].filter(z => totals[z]);
+      const rows = order.map(z => {
+        const pct = totals[z] / total * 100;
+        return `<div class="zsum-row"><div class="zsum-label">${zoneTag(z, zones)}</div>
+<div class="zsum-bar"><div class="${zoneClass(z)}" style="width:${pct}%"></div></div>
+<div class="zsum-amt">${fmtAmount(Math.round(totals[z] * 100) / 100, unit)}<span> · ${Math.round(pct)}%</span></div></div>`;
+      });
+      if (restMin) rows.push(`<div class="zsum-row"><div class="zsum-label">${zoneTag(0, zones)}</div><div class="zsum-bar"></div><div class="zsum-amt">${fmtAmount(restMin, 'min')}</div></div>`);
+      return `<div class="zsum">${rows.join('')}</div>`;
+    }
+
+    function renderZoneEditor(sport) {
+      const zones = getZones(sport);
+      return `<form class="zone-editor" onsubmit="submitZones(event)">
+<div class="zone-editor-title">Your ${sport.toLowerCase()} zones</div>
+<p class="zone-editor-hint">Copy your ranges from the 80/20 Zones app or the <a href="https://www.8020endurance.com/80-20-zone-calculator/" target="_blank" rel="noopener">80/20 Zone Calculator</a>. They're saved on this device and shown on every ${sport.toLowerCase()} workout.</p>
+${[1, 2, 3, 4, 5].map(z => `<label class="zone-input"><span><i class="zdot tz${z}"></i>Zone ${z}</span><input name="z${z}" value="${esc(zones[z] || '')}" placeholder="${ZONE_HINTS[sport]}" autocomplete="off"></label>`).join('')}
+<div class="zone-editor-actions"><button type="button" class="back-btn" onclick="toggleZoneEditor(false)">Cancel</button><button type="submit" class="save-btn">Save zones</button></div>
+</form>`;
+    }
+
+    function submitZones(e) {
+      e.preventDefault();
+      const f = e.target, zones = {};
+      [1, 2, 3, 4, 5].forEach(z => { const v = f['z' + z].value.trim(); if (v) zones[z] = v; });
+      saveZones(byCode[detailCode.toLowerCase()][4], zones);
+      toggleZoneEditor(false);
+    }
+
+    function toggleZoneEditor(on) {
+      editingZones = on;
+      renderDetail(byCode[detailCode.toLowerCase()]);
+    }
+
+    // Highlight a step and its timeline blocks
+    let selected = null;
+    function selectKey(key, rep) {
+      const id = key === null ? null : key + '|' + rep;
+      const already = id !== null && id === selected;
+      selected = already ? null : id;
+      detailEl.querySelectorAll('.sel').forEach(el => el.classList.remove('sel'));
+      const tl = detailEl.querySelector('.timeline.big');
+      const cap = detailEl.querySelector('.tl-caption');
+      if (already || key === null) { tl.classList.remove('has-sel'); cap.textContent = 'Tap a block or step to see where it falls'; return; }
+      tl.classList.add('has-sel');
+      detailEl.querySelectorAll(`[data-key="${key}"]`).forEach(el => {
+        if (el.classList.contains('timeline-seg') && rep !== undefined && el.dataset.rep !== String(rep)) return;
+        el.classList.add('sel');
+      });
+      const row = detailEl.querySelector(`.step[data-key="${key}"]`);
+      const [i, j] = key.split('.');
+      const w = byCode[detailCode.toLowerCase()];
+      const steps = parseSteps(w[2], w[4]);
+      const st = j === undefined ? steps[i] : steps[i].steps[j];
+      cap.textContent = `Step ${+i + 1}${j !== undefined ? String.fromCharCode(97 + +j) : ''}` +
+        (j !== undefined ? (rep !== undefined ? ` · rep ${rep} of ${steps[i].reps}` : ` · all ${steps[i].reps} reps`) : '') +
+        ` · ${fmtAmount(st.amount, st.unit)} ${zoneLabel(st.zone)}`;
+      if (row && rep !== undefined) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    detailEl.addEventListener('click', e => {
+      const seg = e.target.closest('.timeline-seg[data-key]');
+      if (seg) { selectKey(seg.dataset.key, seg.dataset.rep !== undefined ? +seg.dataset.rep : undefined); return; }
+      const row = e.target.closest('.step[data-key]');
+      if (row) selectKey(row.dataset.key);
+    });
+
     // Workout view
     function renderDetail(w) {
+      detailCode = w[0];
+      selected = null;
+      const steps = parseSteps(w[2], w[4]);
+      const segs = flattenSteps(steps);
+      const zones = getZones(w[4]);
+      const hasZones = Object.keys(zones).length > 0;
       detailEl.innerHTML = `<div class="detail-bar">
 <button class="back-btn" onclick="closeWorkout()">&#8592; Back</button>
 <button class="share-btn" onclick="shareWorkout('${w[0]}',this,event)">&#128279; Share</button>
@@ -1471,9 +1886,14 @@ ${sportBadge(w[4])}
 <span class="category">${w[3]}</span>
 </div>
 <div class="detail-duration">${formatDuration(w[1], w[4])}</div>
-<div class="description">${colorZones(w[2])}</div>
-${renderTimeline(w[2])}
-</div>`;
+${segs.length ? `${renderBigTimeline(segs)}<div class="tl-caption">Tap a block or step to see where it falls</div>` : ''}
+</div>
+${segs.length ? `<div class="detail-section"><div class="section-head"><span class="section-title">Steps</span></div>${renderSteps(steps, zones)}</div>
+<div class="detail-section"><div class="section-head"><span class="section-title">Zone breakdown</span>
+<button class="link-btn" onclick="toggleZoneEditor(${!editingZones})">${hasZones ? 'Edit my zones' : 'Add my zones'}</button></div>
+${editingZones ? renderZoneEditor(w[4]) : ''}
+${renderZoneSummary(segs, zones)}</div>` : ''}
+<div class="detail-section"><div class="section-title">Original description</div><div class="description">${colorZones(w[2])}</div></div>`;
     }
 
     function showView() {
@@ -1481,6 +1901,7 @@ ${renderTimeline(w[2])}
       const w = code && byCode[code.toLowerCase()];
       if (w) {
         addRecent(w[0]);
+        editingZones = false;
         renderDetail(w);
         document.body.classList.add('viewing');
         document.title = w[0] + ' · 80/20 Workout Library';
