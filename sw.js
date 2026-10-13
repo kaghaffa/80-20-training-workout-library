@@ -1,4 +1,4 @@
-const CACHE_NAME = '8020-workouts-v6';
+const CACHE_NAME = '8020-workouts-v7';
 const ASSETS = [
   '/index.html',
   '/manifest.json',
@@ -24,6 +24,19 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const host = new URL(e.request.url).hostname;
+  // Cache Google Fonts as they're first used so the app keeps its typefaces offline
+  if (host === 'fonts.googleapis.com' || host === 'fonts.gstatic.com') {
+    e.respondWith(
+      caches.open(CACHE_NAME).then(cache =>
+        cache.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+          cache.put(e.request, res.clone());
+          return res;
+        }))
+      )
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );

@@ -15,9 +15,9 @@ Open `index.html` in any browser. Type a workout code (e.g. `RRe9`, `CFo3`, `SCI
 - Optional personal zone ranges (heart rate, pace or power) per sport, shown next to every step — copy them from the 80/20 Zones app or Zone Calculator
 - **Recently viewed** — the last workout you opened is shown at the top when you reopen the app, so you don't have to retype it (stored locally in your browser)
 - Case-insensitive matching
-- Color-coded zone indicators (Zone 1 through Zone 5)
-- Sport badges (Run / Bike / Swim)
-- Dark theme with 80/20 branding
+- Effort profile for every workout — block width is time or distance, height is the zone — so you can read a session's shape at a glance
+- Each step shows when it starts (clock time, or distance for swims and mile-based runs)
+- Dark theme in Barlow Condensed + IBM Plex Sans; color is reserved for training zones
 - Zero dependencies — single HTML file, no build step
 
 ## Workout Categories
