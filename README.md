@@ -8,7 +8,7 @@ Open `index.html` in any browser. Type a workout code (e.g. `RRe9`, `CFo3`, `SCI
 
 ## Features
 
-- **466 workouts** across Run (190), Bike (218), and Swim (71)
+- **479 workouts** across Run (190), Bike (218), and Swim (71)
 - Instant filter-as-you-type search across codes, categories, sport, and descriptions
 - Case-insensitive matching
 - Color-coded zone indicators (Zone 1 through Zone 5)
@@ -21,8 +21,8 @@ Open `index.html` in any browser. Type a workout code (e.g. `RRe9`, `CFo3`, `SCI
 | Sport | Categories |
 |-------|-----------|
 | Run | Recovery (RRe), Foundation (RF), Aerobic Intervals (RAe), Long (RL), Cruise Intervals (RCI), Tempo (RT), Fast Finish (RFF), Long Fast Finish (RLFF), Anaerobic Intervals (RAn), Short Intervals (RSI), Hill Repeats (RHR), Mixed Intervals (RMI), Speed Play (RSP), Long Intervals (RLI), Long Speed Play (RLSP), Long Marathon Simulator (RLMS), Taper (RTa) |
-| Bike | Recovery (CRe), Foundation (CF), Aerobic Intervals (CAe), Cruise Intervals (CCI), Tempo (CT), Fast Finish (CFF), Force (CFo), Mixed Intervals (CMI), Short Intervals (CSI), Speed Play (CSP), Long Intervals (CLI), Anaerobic Intervals (CAn), Taper (CTa) |
-| Swim | Recovery (SRe), Foundation (SF), Cruise Intervals (SCI), Tempo (ST), Fast Finish (SFF), Short Intervals (SSI), Speed Play (SSP), Mixed Intervals (SMI), Taper (STa) |
+| Bike | Recovery (CRe), Foundation (CF), Aerobic Intervals (CAe), Cruise Intervals (CCI), Tempo (CT), Fast Finish (CFF), Force (CFo), Mixed Intervals (CMI), Anaerobic Intervals (CAn), Speed Play (CSP) |
+| Swim | Recovery (SRe), Foundation (SF), Aerobic Intervals (SAe), Cruise Intervals (SCI), Tempo (ST), Mixed Intervals (SMI), Short Intervals (SSI), Speed Play (SSP), Taper (STa), Time Trial (STT) |
 
 ## Data Source
 
